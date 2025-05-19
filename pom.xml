@@ -30,6 +30,7 @@
         <spring-cloud.version>2022.0.0</spring-cloud.version>
         <lombok.version>1.18.30</lombok.version>
         <jackson.version>2.16.1</jackson.version>
+        <mysql-connector-java.version>8.0.29</mysql-connector-java.version>
     </properties>
     
     <dependencyManagement>
@@ -81,6 +82,18 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mybatis.spring.boot</groupId>
+                <artifactId>mybatis-spring-boot-starter</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector-java.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
