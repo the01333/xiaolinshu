@@ -1,4 +1,4 @@
-package com.puxinxiaolin.xiaolinshu.controller;
+package com.puxinxiaolin.xiaolinshu.auth.controller;
 
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.Response;

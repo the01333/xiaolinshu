@@ -1,4 +1,4 @@
-package com.puxinxiaolin.xiaolinshu.controller;
+package com.puxinxiaolin.xiaolinshu.auth.domain.dataobject;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,16 +11,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class User {
-    
-    /**
-     * 昵称
-     */
-    private String nickName;
+public class UserDO {
 
-    /**
-     * 创建时间
-     */
+    private Long id;
+
+    private String username;
+
     private LocalDateTime createTime;
+
+    private LocalDateTime updateTime;
     
 }
