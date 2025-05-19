@@ -1,24 +1,20 @@
 package com.puxinxiaolin.xiaolinshu.auth.domain.dataobject;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+@Setter
+@Getter
 public class UserDO {
-
+    
     private Long id;
 
     private String username;
 
-    private LocalDateTime createTime;
+    private Date createTime;
 
-    private LocalDateTime updateTime;
-    
+    private Date updateTime;
+
 }

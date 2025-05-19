@@ -19,6 +19,7 @@
     <modules>
         <module>xiaolinshu-common</module>
         <module>xiaolinshu-spring-boot-starter-biz-operationlog</module>
+        <module>xiaolinshu-spring-boot-starter-jackson</module>
     </modules>
 
 </project>
