@@ -12,7 +12,7 @@
     <description>小林书（仿小红书），基于 Spring Cloud Alibaba 微服务架构</description>
 
     <packaging>pom</packaging>
-    
+
     <modules>
         <module>xiaolinshu-auth</module>
         <module>xiaolinshu-framework</module>
@@ -39,8 +39,9 @@
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <hutool.version>5.8.26</hutool.version>
         <dysmsapi.version>4.1.0</dysmsapi.version>
+        <nacos-config.version>0.3.0-RC</nacos-config.version>
     </properties>
-    
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -58,7 +59,7 @@
                 <artifactId>xiaolinshu-spring-boot-starter-jackson</artifactId>
                 <version>${revision}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -147,6 +148,11 @@
                 <artifactId>dysmsapi20170525</artifactId>
                 <version>${dysmsapi.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.alibaba.boot</groupId>
+                <artifactId>nacos-config-spring-boot-starter</artifactId>
+                <version>${nacos-config.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -171,7 +177,7 @@
                         </dependency>
                     </dependencies>
                 </plugin>
-                
+
                 <plugin>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-maven-plugin</artifactId>
@@ -233,7 +239,7 @@
         </pluginManagement>
 
     </build>
-    
+
     <repositories>
         <repository>
             <id>huaweicloud</id>
