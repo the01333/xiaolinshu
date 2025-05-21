@@ -61,6 +61,6 @@ logging:
     com.puxinxiaolin.xiaolinshu.auth.domain.mapper: debug
 
 # SDK
-aliyun:
-  accessKeyId: LTAI5tC1dWwB8Po2MaL1XmPe
-  accessKeySecret: H3lisFenGdv8v5ngGbKS8wWgMXMjSn
+#aliyun:
+#  accessKeyId: LTAI5tC1dWwB8Po2MaL1XmPe
+#  accessKeySecret: H3lisFenGdv8v5ngGbKS8wWgMXMjSn
