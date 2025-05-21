@@ -32,6 +32,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * 捕获 Guava 参数校验异常
+     *
+     * @param request
+     * @param ex
+     * @return
+     */
+    @ResponseBody
+    @ExceptionHandler({IllegalArgumentException.class})
+    public Response<Object> handleIllegalArgumentException(HttpServletRequest request, IllegalArgumentException ex) {
+        String errorCode = ResponseCodeEnum.PARAM_NOT_VALID.getErrorCode();
+        String errorMessage = ex.getMessage();
+
+        logError(request, errorCode, errorMessage);
+
+        return Response.fail(errorCode, errorMessage);
+    }
+
+    /**
      * 捕获参数校验异常
      *
      * @param request

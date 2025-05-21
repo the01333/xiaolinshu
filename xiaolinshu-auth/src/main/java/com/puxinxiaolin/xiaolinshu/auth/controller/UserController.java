@@ -1,0 +1,31 @@
+package com.puxinxiaolin.xiaolinshu.auth.controller;
+
+import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
+import com.puxinxiaolin.framework.common.response.Response;
+import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UserLoginReqVO;
+import com.puxinxiaolin.xiaolinshu.auth.model.vo.verificationcode.SendVerificationCodeReqVO;
+import com.puxinxiaolin.xiaolinshu.auth.service.UserService;
+import com.puxinxiaolin.xiaolinshu.auth.service.VerificationCodeService;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/user")
+@Slf4j
+public class UserController {
+    
+    @Resource
+    private UserService userService;
+    
+    @PostMapping("/login")
+    @ApiOperationLog(description = "用户登录/注册")
+    public Response<String> loginAndRegister(@RequestBody @Validated UserLoginReqVO request) {
+        return userService.loginAndRegister(request);
+    } 
+    
+}

@@ -4,6 +4,8 @@ import com.puxinxiaolin.xiaolinshu.auth.domain.dataobject.UserDO;
 
 public interface UserDOMapper {
     
+    UserDO selectByPhone(String phone);
+    
     int deleteByPrimaryKey(Long id);
 
     int insert(UserDO record);
@@ -15,5 +17,4 @@ public interface UserDOMapper {
     int updateByPrimaryKeySelective(UserDO record);
 
     int updateByPrimaryKey(UserDO record);
-    
 }
