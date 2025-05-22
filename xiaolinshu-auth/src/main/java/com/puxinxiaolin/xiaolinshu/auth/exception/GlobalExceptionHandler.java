@@ -7,13 +7,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Optional;
 
-@ControllerAdvice
+/**
+ * @Description: Auth 全局异常处理，这里采用 @RestControllerAdvice + @ExceptionHandler 的方式
+ * @Author: YCcLin
+ * @Date: 2025/5/22 21:51
+ */
+@RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
@@ -24,7 +28,6 @@ public class GlobalExceptionHandler {
      * @param ex
      * @return
      */
-    @ResponseBody
     @ExceptionHandler({BizException.class})
     public Response<Object> handleBizException(HttpServletRequest request, BizException ex) {
         logError(request, ex.getErrorCode(), ex.getErrorMessage());
@@ -38,7 +41,6 @@ public class GlobalExceptionHandler {
      * @param ex
      * @return
      */
-    @ResponseBody
     @ExceptionHandler({IllegalArgumentException.class})
     public Response<Object> handleIllegalArgumentException(HttpServletRequest request, IllegalArgumentException ex) {
         String errorCode = ResponseCodeEnum.PARAM_NOT_VALID.getErrorCode();
@@ -56,7 +58,6 @@ public class GlobalExceptionHandler {
      * @param ex
      * @return
      */
-    @ResponseBody
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public Response<Object> handleMethodArgumentNotValidException(HttpServletRequest request, MethodArgumentNotValidException ex) {
         String errorCode = ResponseCodeEnum.PARAM_NOT_VALID.getErrorCode();
@@ -87,7 +88,6 @@ public class GlobalExceptionHandler {
      * @return
      */
     @ExceptionHandler({Exception.class})
-    @ResponseBody
     public Response<Object> handleOtherException(HttpServletRequest request, Exception e) {
         log.error("{} request error, ", request.getRequestURI(), e);
         return Response.fail(ResponseCodeEnum.SYSTEM_ERROR);

@@ -1,9 +1,11 @@
 package com.puxinxiaolin.xiaolinshu.gateway.auth;
 
+import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.exception.NotPermissionException;
+import cn.dev33.satoken.exception.NotRoleException;
 import cn.dev33.satoken.reactor.filter.SaReactorFilter;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
-import cn.dev33.satoken.util.SaResult;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -19,16 +21,26 @@ public class SaTokenConfig {
     public SaReactorFilter getSaReactorFilter() {
         return new SaReactorFilter()
                 .addInclude("/**")
-                .addExclude("/favicon.ico")
                 .setAuth(obj -> {
                     // 排除 /user/doLogin 用于登录
-                    SaRouter.match("/**", "/user/doLogin", r -> StpUtil.checkLogin());
-
-                    SaRouter.match("/user/**", r -> StpUtil.checkPermission("user"));
-                    SaRouter.match("/admin/**", r -> StpUtil.checkPermission("admin"));
-                    SaRouter.match("/goods/**", r -> StpUtil.checkPermission("goods"));
-                    SaRouter.match("/orders/**", r -> StpUtil.checkPermission("orders"));
-                }).setError(e -> SaResult.error(e.getMessage()))
+                    SaRouter.match("/**")
+                            .notMatch("/auth/user/login")
+                            .notMatch("/auth/verification/code/send")
+                            .check(r -> StpUtil.checkLogin())
+                    ;
+                    
+                    SaRouter.match("/auth/user/logout", r -> StpUtil.checkRole("admin"))
+                    ;
+                    
+                }).setError(e -> {
+                    if (e instanceof NotLoginException) {
+                        throw new NotLoginException(e.getMessage(), null, null);
+                    } else if (e instanceof NotPermissionException || e instanceof NotRoleException) {
+                        throw new NotPermissionException(e.getMessage());
+                    } else {
+                        throw new RuntimeException(e.getMessage());
+                    }
+                })
                 ;
     }
 

@@ -45,7 +45,6 @@ public class PushRolePermission2RedisRunner implements ApplicationRunner {
         log.info("==> 服务启动，开始同步角色权限数据到 Redis 中...");
 
         try {
-
             Boolean canPushed = redisTemplate.opsForValue()
                     .setIfAbsent(PUSH_PERMISSION_FLAG, "1", 1, TimeUnit.DAYS);
             if (Boolean.FALSE.equals(canPushed)) { 
@@ -71,28 +70,29 @@ public class PushRolePermission2RedisRunner implements ApplicationRunner {
                 Map<Long, PermissionDO> permissionIdWithDOMap = permissionDOList.stream()
                         .collect(Collectors.toMap(PermissionDO::getId, permissionDO -> permissionDO));
                 
-                // Map<roleId, List<permissionDO>>
-                Map<Long, List<PermissionDO>> roleIdWithPermissionDOMap = Maps.newHashMap();
+                // Map<roleId, List<permissionKey>>
+                Map<String, List<String>> roleKeyWithPermissionKeysMap = Maps.newHashMap();
+                
                 roleDOList.forEach(roleDO -> {
                     Long roleId = roleDO.getId();
+                    String roleKey = roleDO.getRoleKey();
+                    
                     List<Long> permissionIds = roleIdWithPermissionIdsMap.get(roleId);
                     if (CollUtil.isNotEmpty(permissionIds)) {
-                        List<PermissionDO> permissionDOS = Lists.newArrayList();
+                        List<String> permissionKeys = Lists.newArrayList();
                         permissionIds.forEach(permissionId -> {
                             PermissionDO permissionDO = permissionIdWithDOMap.get(permissionId);
-                            if (Objects.nonNull(permissionDO)) {
-                                permissionDOS.add(permissionDO);
-                            }
+                            permissionKeys.add(permissionDO.getPermissionKey());
                         });
-                        
-                        roleIdWithPermissionDOMap.put(roleId, permissionDOS);
+
+                        roleKeyWithPermissionKeysMap.put(roleKey, permissionKeys);
                     }
                 });
 
                 // 同步到 redis
-                roleIdWithPermissionDOMap.forEach((roleId, permissionDOS) -> {
-                    String key = RedisKeyConstants.buildRolePermissionsKey(roleId);
-                    redisTemplate.opsForValue().set(key, JsonUtils.toJsonString(permissionDOS));
+                roleKeyWithPermissionKeysMap.forEach((roleKey, permissionKeys) -> {
+                    String key = RedisKeyConstants.buildRolePermissionsKey(roleKey);
+                    redisTemplate.opsForValue().set(key, JsonUtils.toJsonString(permissionKeys));
                 });
             }
 

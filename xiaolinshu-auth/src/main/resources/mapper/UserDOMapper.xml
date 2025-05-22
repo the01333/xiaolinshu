@@ -203,5 +203,7 @@
         select id, password
         from t_user
         where phone = #{phone}
+        and is_deleted = 0
+        and status = 0
     </select>
 </mapper>

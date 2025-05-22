@@ -11,8 +11,10 @@ import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.auth.constant.RedisKeyConstants;
 import com.puxinxiaolin.xiaolinshu.auth.constant.RoleConstants;
+import com.puxinxiaolin.xiaolinshu.auth.domain.dataobject.RoleDO;
 import com.puxinxiaolin.xiaolinshu.auth.domain.dataobject.UserDO;
 import com.puxinxiaolin.xiaolinshu.auth.domain.dataobject.UserRoleDO;
+import com.puxinxiaolin.xiaolinshu.auth.domain.mapper.RoleDOMapper;
 import com.puxinxiaolin.xiaolinshu.auth.domain.mapper.UserDOMapper;
 import com.puxinxiaolin.xiaolinshu.auth.domain.mapper.UserRoleDOMapper;
 import com.puxinxiaolin.xiaolinshu.auth.enums.LoginTypeEnum;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +41,8 @@ public class UserServiceImpl implements UserService {
     private UserDOMapper userDOMapper;
     @Resource
     private UserRoleDOMapper userRoleDOMapper;
+    @Resource
+    private RoleDOMapper roleDOMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
@@ -63,6 +68,8 @@ public class UserServiceImpl implements UserService {
                     throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
                 }
 
+                // 删除验证码缓存
+                redisTemplate.delete(key);
                 UserDO userDO = userDOMapper.selectByPhone(phone);
                 log.info("==> 用户是否注册, phone: {}, userDO: {}", phone, JsonUtils.toJsonString(userDO));
 
@@ -121,10 +128,13 @@ public class UserServiceImpl implements UserService {
                         .build();
                 userRoleDOMapper.insert(userRoleDO);
 
+                RoleDO roleDO = roleDOMapper.selectByPrimaryKey(RoleConstants.COMMON_USER_ROLE_ID);
+
                 // 缓存用户的角色 ID
-                List<Long> roles = Lists.newArrayList();
-                roles.add(RoleConstants.COMMON_USER_ROLE_ID);
-                String userRolesKey = RedisKeyConstants.buildUserRoleKey(phone);
+                List<String> roles = new ArrayList<>(1);
+                roles.add(roleDO.getRoleKey());
+                
+                String userRolesKey = RedisKeyConstants.buildUserRoleKey(userId);
                 redisTemplate.opsForValue().set(userRolesKey, JsonUtils.toJsonString(roles));
 
                 return userId;
