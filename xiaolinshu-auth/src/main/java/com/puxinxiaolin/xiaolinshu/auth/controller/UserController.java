@@ -1,12 +1,9 @@
 package com.puxinxiaolin.xiaolinshu.auth.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UserLoginReqVO;
-import com.puxinxiaolin.xiaolinshu.auth.model.vo.verificationcode.SendVerificationCodeReqVO;
 import com.puxinxiaolin.xiaolinshu.auth.service.UserService;
-import com.puxinxiaolin.xiaolinshu.auth.service.VerificationCodeService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
