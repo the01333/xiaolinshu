@@ -9,6 +9,11 @@ spring:
         server-addr: 192.168.101.17:8848
         prefix: ${spring.application.name}
         group: DEFAULT_GROUP
-        namespace: public
+        namespace: xiaolinshu
         file-extension: yaml
         refresh-enabled: true
+      discovery:
+        enabled: true
+        group: DEFAULT_GROUP
+        namespace: xiaolinshu
+        server-addr: 192.168.101.17:8848
