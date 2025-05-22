@@ -3,7 +3,6 @@ package com.puxinxiaolin.xiaolinshu.auth.service.impl;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.puxinxiaolin.framework.common.enums.DeletedEnum;
 import com.puxinxiaolin.framework.common.enums.StatusEnum;
 import com.puxinxiaolin.framework.common.exception.BizException;
@@ -26,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
@@ -48,6 +46,12 @@ public class UserServiceImpl implements UserService {
     @Resource
     private TransactionTemplate transactionTemplate;
 
+    /**
+     * 登录与注册
+     *
+     * @param userLoginReqVO
+     * @return
+     */
     @Override
     public Response<String> loginAndRegister(UserLoginReqVO userLoginReqVO) {
         String phone = userLoginReqVO.getPhone();
@@ -59,7 +63,7 @@ public class UserServiceImpl implements UserService {
         switch (loginTypeEnum) {
             case VERIFICATION_CODE -> {
                 String verificationCode = userLoginReqVO.getCode();
-                
+
                 Preconditions.checkArgument(StringUtils.isNotBlank(verificationCode), "验证码不能为空");
 
                 String key = RedisKeyConstants.buildVerificationCodeKey(phone);
@@ -92,6 +96,19 @@ public class UserServiceImpl implements UserService {
 
         SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
         return Response.success(tokenInfo.tokenValue);
+    }
+
+    /**
+     * 退出登录
+     *
+     * @param userId
+     * @return
+     */
+    @Override
+    public Response<?> logout(Long userId) {
+        StpUtil.logout(userId);
+        
+        return Response.success();
     }
 
     /**
@@ -133,7 +150,7 @@ public class UserServiceImpl implements UserService {
                 // 缓存用户的角色 ID
                 List<String> roles = new ArrayList<>(1);
                 roles.add(roleDO.getRoleKey());
-                
+
                 String userRolesKey = RedisKeyConstants.buildUserRoleKey(userId);
                 redisTemplate.opsForValue().set(userRolesKey, JsonUtils.toJsonString(roles));
 

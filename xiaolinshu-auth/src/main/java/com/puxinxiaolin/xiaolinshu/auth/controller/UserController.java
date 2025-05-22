@@ -28,10 +28,8 @@ public class UserController {
 
     @PostMapping("/logout")
     @ApiOperationLog(description = "账号登出")
-    public Response<String> logout() {
-        // TODO [YCcLin 2025/5/22]: 账号登出
-        StpUtil.logout();
-        return Response.success();
+    public Response<?> logout(@RequestHeader("userId") String userId) {
+        return userService.logout(Long.valueOf(userId));
     }
 
 }
