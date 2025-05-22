@@ -14,10 +14,11 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
-        <module name="xiaolinshu-spring-boot-starter-biz-operationlog" />
         <module name="xiaolinshu-auth" />
+        <module name="xiaolinshu-spring-boot-starter-biz-operationlog" />
         <module name="xiaolinshu-spring-boot-starter-jackson" />
         <module name="xiaolinshu-common" />
+        <module name="xiaolinshu-gateway" />
       </profile>
     </annotationProcessing>
   </component>

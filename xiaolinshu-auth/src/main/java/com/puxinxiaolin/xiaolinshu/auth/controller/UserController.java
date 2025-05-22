@@ -26,6 +26,13 @@ public class UserController {
     @ApiOperationLog(description = "用户登录/注册")
     public Response<String> loginAndRegister(@RequestBody @Validated UserLoginReqVO request) {
         return userService.loginAndRegister(request);
-    } 
-    
+    }
+
+    @PostMapping("/logout")
+    @ApiOperationLog(description = "账号登出")
+    public Response<String> logout() {
+        // TODO [YCcLin 2025/5/22]: 账号登出 
+        return Response.success();
+    }
+
 }

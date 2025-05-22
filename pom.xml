@@ -16,6 +16,7 @@
     <modules>
         <module>xiaolinshu-auth</module>
         <module>xiaolinshu-framework</module>
+        <module>xiaolinshu-gateway</module>
     </modules>
 
     <properties>
@@ -125,6 +126,12 @@
             <dependency>
                 <groupId>cn.dev33</groupId>
                 <artifactId>sa-token-redis-jackson</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+            <!-- 网关要使用 SaToken 必须要引入 -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-reactor-spring-boot3-starter</artifactId>
                 <version>${sa-token.version}</version>
             </dependency>
 
