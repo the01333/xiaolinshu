@@ -9,6 +9,8 @@
     <file url="file://$PROJECT_DIR$/xiaolinshu-framework/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-common/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-spring-boot-starter-biz-context/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-spring-boot-starter-biz-context/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-spring-boot-starter-biz-operationlog/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-spring-boot-starter-biz-operationlog/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-spring-boot-starter-jackson/src/main/java" charset="UTF-8" />

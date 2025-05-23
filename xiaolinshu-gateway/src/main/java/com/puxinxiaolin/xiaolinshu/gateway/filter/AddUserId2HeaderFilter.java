@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono;
  * @Author: YCcLin
  * @Date: 2025/5/22 22:03
  */
-@Component
+@Component         
 @Slf4j
 public class AddUserId2HeaderFilter implements GlobalFilter {
 

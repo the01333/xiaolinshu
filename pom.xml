@@ -12,7 +12,7 @@
     <description>小林书（仿小红书），基于 Spring Cloud Alibaba 微服务架构</description>
 
     <packaging>pom</packaging>
-
+           
     <modules>
         <module>xiaolinshu-auth</module>
         <module>xiaolinshu-framework</module>
@@ -41,6 +41,7 @@
         <hutool.version>5.8.26</hutool.version>
         <dysmsapi.version>4.1.0</dysmsapi.version>
         <nacos-config.version>0.3.0-RC</nacos-config.version>
+        <transmittable-thread-local.version>2.14.2</transmittable-thread-local.version>
     </properties>
 
     <dependencyManagement>
@@ -58,6 +59,11 @@
             <dependency>
                 <groupId>com.puxinxiaolin</groupId>
                 <artifactId>xiaolinshu-spring-boot-starter-jackson</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.puxinxiaolin</groupId>
+                <artifactId>xiaolinshu-spring-boot-starter-biz-context</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -159,6 +165,11 @@
                 <groupId>com.alibaba.boot</groupId>
                 <artifactId>nacos-config-spring-boot-starter</artifactId>
                 <version>${nacos-config.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>transmittable-thread-local</artifactId>
+                <version>${transmittable-thread-local.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

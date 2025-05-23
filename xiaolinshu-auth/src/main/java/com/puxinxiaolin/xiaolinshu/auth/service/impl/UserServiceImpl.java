@@ -3,6 +3,7 @@ package com.puxinxiaolin.xiaolinshu.auth.service.impl;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.google.common.base.Preconditions;
+import com.puxinxiaolin.framework.biz.context.holder.LoginUserContextHolder;
 import com.puxinxiaolin.framework.common.enums.DeletedEnum;
 import com.puxinxiaolin.framework.common.enums.StatusEnum;
 import com.puxinxiaolin.framework.common.exception.BizException;
@@ -24,6 +25,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -45,6 +47,8 @@ public class UserServiceImpl implements UserService {
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private TransactionTemplate transactionTemplate;
+    @Resource(name = "taskExecutor")
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     /**
      * 登录与注册
@@ -101,13 +105,20 @@ public class UserServiceImpl implements UserService {
     /**
      * 退出登录
      *
-     * @param userId
      * @return
      */
     @Override
-    public Response<?> logout(Long userId) {
-        StpUtil.logout(userId);
+    public Response<?> logout() {
+        Long userId = LoginUserContextHolder.getUserId();
         
+        log.info("==> 用户退出登录, userId: {}", userId);
+
+        threadPoolTaskExecutor.submit(() -> {
+            Long userId2 = LoginUserContextHolder.getUserId();
+            log.info("==> 异步线程中获取 userId: {}", userId2);
+        });
+        
+        StpUtil.logout(userId);
         return Response.success();
     }
 
