@@ -19,6 +19,7 @@ import com.puxinxiaolin.xiaolinshu.auth.domain.mapper.UserDOMapper;
 import com.puxinxiaolin.xiaolinshu.auth.domain.mapper.UserRoleDOMapper;
 import com.puxinxiaolin.xiaolinshu.auth.enums.LoginTypeEnum;
 import com.puxinxiaolin.xiaolinshu.auth.enums.ResponseCodeEnum;
+import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UpdatePasswordReqVO;
 import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UserLoginReqVO;
 import com.puxinxiaolin.xiaolinshu.auth.service.UserService;
 import jakarta.annotation.Resource;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -49,6 +51,30 @@ public class UserServiceImpl implements UserService {
     private TransactionTemplate transactionTemplate;
     @Resource(name = "taskExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
+    /**
+     * 修改密码
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> updatePassword(UpdatePasswordReqVO request) {
+        String newPassword = request.getNewPassword();
+        String encodePassword = passwordEncoder.encode(newPassword);
+
+        Long userId = LoginUserContextHolder.getUserId();
+        UserDO userDO = UserDO.builder()
+                .id(userId)
+                .password(encodePassword)
+                .updateTime(LocalDateTime.now())
+                .build();
+        userDOMapper.updateByPrimaryKeySelective(userDO);
+        
+        return Response.success();
+    }
 
     /**
      * 登录与注册
@@ -62,6 +88,10 @@ public class UserServiceImpl implements UserService {
         Integer type = userLoginReqVO.getType();
 
         LoginTypeEnum loginTypeEnum = LoginTypeEnum.valueOf(type);
+        if (Objects.isNull(loginTypeEnum)) {
+            throw new BizException(ResponseCodeEnum.LOGIN_TYPE_ERROR);
+        }
+        
         Long userId = null;
 
         switch (loginTypeEnum) {
@@ -89,7 +119,20 @@ public class UserServiceImpl implements UserService {
                 }
             }
             case PASSWORD -> {
-                // TODO [YCcLin 2025/5/21]: 密码登录
+                String password = userLoginReqVO.getPassword();
+                
+                UserDO existUserDO = userDOMapper.selectByPhone(phone);
+                if (Objects.isNull(existUserDO)) {
+                    throw new BizException(ResponseCodeEnum.USER_NOT_FOUND);
+                }
+
+                String encodePassword = existUserDO.getPassword();
+                boolean isMatched = passwordEncoder.matches(password, encodePassword);
+                if (!isMatched) {
+                    throw new BizException(ResponseCodeEnum.PHONE_OR_PASSWORD_ERROR);
+                }
+                
+                userId = existUserDO.getId();
             }
             default -> {
             }

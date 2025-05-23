@@ -2,6 +2,7 @@ package com.puxinxiaolin.xiaolinshu.auth.controller;
 
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.Response;
+import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UpdatePasswordReqVO;
 import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UserLoginReqVO;
 import com.puxinxiaolin.xiaolinshu.auth.service.UserService;
 import jakarta.annotation.Resource;
@@ -27,6 +28,12 @@ public class UserController {
     @ApiOperationLog(description = "账号登出")
     public Response<?> logout() {
         return userService.logout();
+    }
+
+    @PostMapping("/password/update")
+    @ApiOperationLog(description = "修改密码")
+    public Response<?> updatePassword(@RequestBody @Validated UpdatePasswordReqVO request) {
+        return userService.updatePassword(request);
     }
 
 }
