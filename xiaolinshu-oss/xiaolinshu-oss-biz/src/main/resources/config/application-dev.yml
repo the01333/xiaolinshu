@@ -4,6 +4,6 @@ storage:
     accessKey: puxinxiaolin
     secretKey: puxinxiaolin
 
+# 这里已经抽到 nacos 了, 走配置中心
 oss:
   aliyun:
-    endpoint: oss-cn-hangzhou.aliyuncs.com
