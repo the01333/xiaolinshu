@@ -27,23 +27,10 @@ sa-token:
   # 是否输出操作日志 
   is-log: true
 
+
+# 测试用
 rate-limit:
   api:
     limit: 100  # 接口限流阈值
-
 alarm:
   type: sms  # 告警类型
-
-# 单体的配置
-#nacos:
-#  config:
-#    data-id: xiaolinshu-auth
-#    access-key:
-#    secret-key:
-#    group: DEFAULT_GROUP
-#    type: yaml
-#    server-addr: 192.168.101.17:8848/
-#    auto-refresh: true
-#    remote-first: true  # 是否优先使用远程配置
-#    bootstrap:
-#      enable: true  # 启动时, 预热配置

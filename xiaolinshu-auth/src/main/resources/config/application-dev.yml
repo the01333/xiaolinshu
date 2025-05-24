@@ -59,9 +59,3 @@ spring:
 logging:
   level:
     com.puxinxiaolin.xiaolinshu.auth.domain.mapper: debug
-
-# 这里存储在 nacos 的配置中心，不然 git-push 不通过
-# SDK
-#aliyun:
-#  accessKeyId: LTAI5tDiapihRqtgpHs8nYyH
-#  accessKeySecret: 1JhUeLPIe2E7MXaqChB2mTiKaFvTcM
