@@ -32,6 +32,12 @@ spring:
             - Path=/oss/**
           filters:
             - StripPrefix=1
+        - id: xiaolinshu-user
+          uri: lb://xiaolinshu-user
+          predicates:
+            - Path=/user/**
+          filters:
+            - StripPrefix=1
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:

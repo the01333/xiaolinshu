@@ -18,6 +18,7 @@
         <module>xiaolinshu-framework</module>
         <module>xiaolinshu-gateway</module>
         <module>xiaolinshu-oss</module>
+        <module>xiaolinshu-user</module>
     </modules>
 
     <properties>

@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: xiaolinshu-user
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        server-addr: 192.168.101.17:8848
+        group: DEFAULT_GROUP
+        namespace: xiaolinshu
+      config:
+        enabled: true
+        server-addr: 192.168.101.17:8848
+        prefix: ${spring.application.name}
+        group: DEFAULT_GROUP
+        namespace: xiaolinshu
+        file-extension: yaml
+        refresh-enabled: true
