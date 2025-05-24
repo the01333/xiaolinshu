@@ -3,7 +3,3 @@ storage:
     endpoint: http://192.168.101.17:9000
     accessKey: puxinxiaolin
     secretKey: puxinxiaolin
-
-# 这里已经抽到 nacos 了, 走配置中心
-oss:
-  aliyun:
