@@ -9,3 +9,13 @@ docker run -d --name nacos --privileged -e MODE=standalone --restart=always \
 -v /soft/docker/nacos/conf:/home/nacos/conf \
 -v /soft/docker/nacos/data:/home/nacos/data \
 -v /soft/docker/nacos/logs:/home/nacos/logs nacos/nacos-server:v2.2.3
+
+3. minio
+docker run -d \
+   -p 9000:9000 \
+   -p 9090:9090 \
+   --name minio --restart=always \
+   -v /soft/docker/minio/data:/data \
+   -e "MINIO_ROOT_USER=puxinxiaolin" \
+   -e "MINIO_ROOT_PASSWORD=puxinxiaolin" \
+   minio/minio:RELEASE.2023-09-30T07-02-29Z server /data --console-address ":9090"

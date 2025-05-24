@@ -1,0 +1,29 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>com.puxinxiaolin</groupId>
+        <artifactId>xiaolinshu</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <packaging>pom</packaging>
+    
+    <modules>
+        <module>xiaolinshu-oss-api</module>
+        <module>xiaolinshu-oss-biz</module>
+    </modules>
+
+    <artifactId>xiaolinshu-oss</artifactId>
+    <name>${project.artifactId}</name>
+    <description>对象存储服务</description>
+
+<!--    <dependencies>-->
+<!--        <dependency>-->
+<!--            <groupId>io.minio</groupId>-->
+<!--            <artifactId>minio</artifactId>-->
+<!--            <version>8.5.9</version>-->
+<!--        </dependency>-->
+<!--    </dependencies>-->
+</project>
