@@ -38,7 +38,8 @@ public class AliyunOssFileStrategy implements FileStrategy {
         
         String originalFileName = file.getOriginalFilename();
         
-        String key = UUID.randomUUID().toString().replace("-", "");
+        String key = UUID.randomUUID().toString()
+                .replace("-", "");
         String suffix = originalFileName.substring(originalFileName.lastIndexOf("."));
         
         String objectName = String.format("%s%s", key, suffix);

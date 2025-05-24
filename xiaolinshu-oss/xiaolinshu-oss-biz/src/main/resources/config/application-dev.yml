@@ -3,7 +3,7 @@ storage:
     endpoint: http://192.168.101.17:9000
     accessKey: puxinxiaolin
     secretKey: puxinxiaolin
-  aliyun-oss:
+
+oss:
+  aliyun:
     endpoint: oss-cn-hangzhou.aliyuncs.com
-    accessKey: LTAI5t84NfqNsZFiPEWTAtjP
-    secretKey: Rttt5tGkiRLMu3zNdV6jMojEva1wuf

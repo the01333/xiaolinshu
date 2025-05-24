@@ -5,5 +5,5 @@ spring:
   profiles:
     active: dev
 
-storage:
-  type: aliyun 
+#storage:
+#  type: aliyun 
