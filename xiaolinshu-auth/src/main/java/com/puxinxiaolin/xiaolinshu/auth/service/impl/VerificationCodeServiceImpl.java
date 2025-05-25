@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class VerificationCodeServiceImpl implements VerificationCodeService {
-
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource(name = "taskExecutor")

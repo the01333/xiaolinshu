@@ -8,7 +8,10 @@ import com.puxinxiaolin.framework.common.exception.BizException;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.framework.common.util.ParamUtils;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.req.FindUserByPhoneReqDTO;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.req.RegisterUserReqDTO;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByPhoneRspDTO;
 import com.puxinxiaolin.xiaolinshu.user.biz.constant.RedisKeyConstants;
 import com.puxinxiaolin.xiaolinshu.user.biz.constant.RoleConstants;
 import com.puxinxiaolin.xiaolinshu.user.biz.domain.dataobject.RoleDO;
@@ -183,6 +186,48 @@ public class UserServiceImpl implements UserService {
                 .set(userRolesKey, JsonUtils.toJsonString(roles));
 
         return Response.success(userId);
+    }
+
+    /**
+     * 根据手机号查找用户
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<FindUserByPhoneRspDTO> findByPhone(FindUserByPhoneReqDTO request) {
+        String phone = request.getPhone();
+
+        UserDO exist = userDOMapper.selectByPhone(phone);
+        if (Objects.isNull(exist)) {
+            throw new BizException(ResponseCodeEnum.USER_NOT_FOUND);
+        }
+
+        FindUserByPhoneRspDTO result = FindUserByPhoneRspDTO.builder()
+                .id(exist.getId())
+                .password(exist.getPassword())
+                .build();
+        return Response.success(result);
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> updatePassword(UpdateUserPasswordReqDTO request) {
+        Long userId = LoginUserContextHolder.getUserId();
+
+        UserDO userDO = UserDO.builder()
+                .id(userId)
+                .password(request.getEncodePassword())
+                .updateTime(LocalDateTime.now())
+                .build();
+        
+        userDOMapper.updateByPrimaryKeySelective(userDO);
+        return Response.success();
     }
 
 }

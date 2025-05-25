@@ -4,7 +4,7 @@ import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UpdatePasswordReqVO;
 import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UserLoginReqVO;
 
-public interface UserService {
+public interface AuthService {
 
     /**
      * 修改密码

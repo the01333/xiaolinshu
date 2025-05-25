@@ -4,9 +4,6 @@ server:
 spring:
   profiles:
     active: dev
-    
-mybatis:
-  mapper-locations: classpath:/mapper/**/*.xml
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:
@@ -26,11 +23,3 @@ sa-token:
   token-style: random-128
   # 是否输出操作日志 
   is-log: true
-
-
-# 测试用
-rate-limit:
-  api:
-    limit: 100  # 接口限流阈值
-alarm:
-  type: sms  # 告警类型
