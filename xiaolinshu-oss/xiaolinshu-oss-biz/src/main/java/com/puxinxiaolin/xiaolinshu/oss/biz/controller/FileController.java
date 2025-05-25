@@ -1,5 +1,6 @@
 package com.puxinxiaolin.xiaolinshu.oss.biz.controller;
 
+import com.puxinxiaolin.framework.biz.context.holder.LoginUserContextHolder;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.oss.biz.sevice.FileService;
 import jakarta.annotation.Resource;
@@ -15,12 +16,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/file")
 @Slf4j
 public class FileController {
-    
     @Resource
     private FileService fileService;
     
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Response<?> uploadFile(@RequestPart(value = "file") MultipartFile file) {
+        log.info("当前用户 ID: {}", LoginUserContextHolder.getUserId());
         return fileService.uploadFile(file);
     }
     

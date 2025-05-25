@@ -2,13 +2,16 @@ package com.puxinxiaolin.xiaolinshu.user.biz.service.impl;
 
 import com.google.common.base.Preconditions;
 import com.puxinxiaolin.framework.biz.context.holder.LoginUserContextHolder;
+import com.puxinxiaolin.framework.common.exception.BizException;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.framework.common.util.ParamUtils;
+import com.puxinxiaolin.xiaolinshu.oss.api.api.FileFeignApi;
 import com.puxinxiaolin.xiaolinshu.user.biz.domain.dataobject.UserDO;
 import com.puxinxiaolin.xiaolinshu.user.biz.domain.mapper.UserDOMapper;
 import com.puxinxiaolin.xiaolinshu.user.biz.enums.ResponseCodeEnum;
 import com.puxinxiaolin.xiaolinshu.user.biz.enums.SexEnum;
 import com.puxinxiaolin.xiaolinshu.user.biz.model.vo.UpdateUserInfoReqVO;
+import com.puxinxiaolin.xiaolinshu.user.biz.rpc.OssRpcService;
 import com.puxinxiaolin.xiaolinshu.user.biz.service.UserService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +26,10 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
-    
     @Resource
     private UserDOMapper userDOMapper;
+    @Resource
+    private OssRpcService ossRpcService;
     
     /**
      * 更新用户信息
@@ -41,7 +45,16 @@ public class UserServiceImpl implements UserService {
 
         MultipartFile avatar = request.getAvatar();
         if (Objects.nonNull(avatar)) {
-            // TODO [YCcLin 2025/5/24]: 调用存储服务上传文件 
+            // 调用存储服务上传文件 
+            String avatarUrl = ossRpcService.uploadFile(avatar);
+            
+            log.info("==> 调用 oss 服务成功, 上传头像, url: {}", avatar);
+            if (StringUtils.isBlank(avatarUrl)) {
+                throw new BizException(ResponseCodeEnum.UPLOAD_AVATAR_FAIL);
+            }
+
+            userDO.setAvatar(avatarUrl);
+            needUpdate = true;
         }
 
         String nickname = request.getNickname();
@@ -81,7 +94,16 @@ public class UserServiceImpl implements UserService {
         
         MultipartFile backgroundImgFile = request.getBackgroundImg();
         if (Objects.nonNull(backgroundImgFile)) {
-            // TODO [YCcLin 2025/5/24]: 调用存储服务上传文件 
+            // 调用存储服务上传文件 
+            String backgroundImgUrl = ossRpcService.uploadFile(backgroundImgFile);
+            
+            log.info("==> 调用 oss 服务成功, 上传背景图, url: {}", backgroundImgUrl);
+            if (StringUtils.isBlank(backgroundImgUrl)) {
+                throw new BizException(ResponseCodeEnum.UPLOAD_BACKGROUND_IMG_FAIL);
+            }
+            
+            userDO.setBackgroundImg(backgroundImgUrl);
+            needUpdate = true;
         }
 
         if (needUpdate) {

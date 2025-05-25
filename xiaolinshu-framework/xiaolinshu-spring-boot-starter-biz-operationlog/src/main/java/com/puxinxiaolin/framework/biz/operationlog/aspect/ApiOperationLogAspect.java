@@ -37,7 +37,9 @@ public class ApiOperationLogAspect {
         String methodName = joinPoint.getSignature().getName();
         
         Object[] args = joinPoint.getArgs();
-        String argsJsonStr = Arrays.stream(args).map(toJsonStr()).collect(Collectors.joining(", "));
+        String argsJsonStr = Arrays.stream(args)
+                .map(toJsonStr())
+                .collect(Collectors.joining(", "));
         
         String description = getApiOperationLogDescription(joinPoint);
         

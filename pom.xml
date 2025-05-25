@@ -12,7 +12,7 @@
     <description>小林书（仿小红书），基于 Spring Cloud Alibaba 微服务架构</description>
 
     <packaging>pom</packaging>
-           
+
     <modules>
         <module>xiaolinshu-auth</module>
         <module>xiaolinshu-framework</module>
@@ -49,6 +49,7 @@
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <activation.version>1.1.1</activation.version>
         <jaxb-runtime.version>2.3.3</jaxb-runtime.version>
+        <feign-form.version>3.8.0</feign-form.version>
     </properties>
 
     <dependencyManagement>
@@ -71,6 +72,12 @@
             <dependency>
                 <groupId>com.puxinxiaolin</groupId>
                 <artifactId>xiaolinshu-spring-boot-starter-biz-context</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 走 OSS 的 RPC 接口 -->
+            <dependency>
+                <groupId>com.puxinxiaolin</groupId>
+                <artifactId>xiaolinshu-oss-api</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -173,7 +180,7 @@
                 <artifactId>nacos-config-spring-boot-starter</artifactId>
                 <version>${nacos-config.version}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>transmittable-thread-local</artifactId>
@@ -206,6 +213,13 @@
                 <groupId>org.glassfish.jaxb</groupId>
                 <artifactId>jaxb-runtime</artifactId>
                 <version>${jaxb-runtime.version}</version>
+            </dependency>
+
+            <!-- Feign 支持表单提交 -->
+            <dependency>
+                <groupId>io.github.openfeign.form</groupId>
+                <artifactId>feign-form</artifactId>
+                <version>${feign-form.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
