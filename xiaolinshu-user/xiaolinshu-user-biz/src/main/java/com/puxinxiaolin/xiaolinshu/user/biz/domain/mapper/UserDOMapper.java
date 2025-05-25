@@ -3,6 +3,9 @@ package com.puxinxiaolin.xiaolinshu.user.biz.domain.mapper;
 import com.puxinxiaolin.xiaolinshu.user.biz.domain.dataobject.UserDO;
 
 public interface UserDOMapper {
+    
+    UserDO selectByPhone(String phone);
+    
     int deleteByPrimaryKey(Long id);
 
     int insert(UserDO record);

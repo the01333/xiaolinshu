@@ -21,6 +21,7 @@ import com.puxinxiaolin.xiaolinshu.auth.enums.LoginTypeEnum;
 import com.puxinxiaolin.xiaolinshu.auth.enums.ResponseCodeEnum;
 import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UpdatePasswordReqVO;
 import com.puxinxiaolin.xiaolinshu.auth.model.vo.user.UserLoginReqVO;
+import com.puxinxiaolin.xiaolinshu.auth.rpc.UserRpcService;
 import com.puxinxiaolin.xiaolinshu.auth.service.UserService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +54,8 @@ public class UserServiceImpl implements UserService {
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     @Resource
     private PasswordEncoder passwordEncoder;
+    @Resource
+    private UserRpcService userRpcService;
 
     /**
      * 修改密码
@@ -105,18 +108,16 @@ public class UserServiceImpl implements UserService {
                 if (!StringUtils.equals(senCode, verificationCode)) {
                     throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
                 }
-
-                // 删除验证码缓存
+                
                 redisTemplate.delete(key);
-                UserDO userDO = userDOMapper.selectByPhone(phone);
-                log.info("==> 用户是否注册, phone: {}, userDO: {}", phone, JsonUtils.toJsonString(userDO));
-
-                if (Objects.isNull(userDO)) {
-                    // 还未注册就自动注册
-                    userId = registerUser(phone);
-                } else {
-                    userId = userDO.getId();
+                
+                // 走 rpc
+                Long tempUserId = userRpcService.registerUser(phone);
+                if (Objects.isNull(tempUserId)) { 
+                    throw new BizException(ResponseCodeEnum.LOGIN_FAIL);
                 }
+
+                userId = tempUserId;
             }
             case PASSWORD -> {
                 String password = userLoginReqVO.getPassword();

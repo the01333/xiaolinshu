@@ -74,10 +74,15 @@
                 <artifactId>xiaolinshu-spring-boot-starter-biz-context</artifactId>
                 <version>${revision}</version>
             </dependency>
-            <!-- 走 OSS 的 RPC 接口 -->
+            <!-- 走 RPC -->
             <dependency>
                 <groupId>com.puxinxiaolin</groupId>
                 <artifactId>xiaolinshu-oss-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.puxinxiaolin</groupId>
+                <artifactId>xiaolinshu-user-api</artifactId>
                 <version>${revision}</version>
             </dependency>
 

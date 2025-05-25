@@ -5,37 +5,19 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserDO {
+public class UserRoleDO {
     
     private Long id;
 
-    private String xiaolinshuId;
+    private Long userId;
 
-    private String password;
-
-    private String nickname;
-
-    private String avatar;
-
-    private LocalDate birthday;
-
-    private String backgroundImg;
-
-    private String phone;
-
-    private Integer sex;
-
-    private Integer status;
-
-    private String introduction;
+    private Long roleId;
 
     private LocalDateTime createTime;
 

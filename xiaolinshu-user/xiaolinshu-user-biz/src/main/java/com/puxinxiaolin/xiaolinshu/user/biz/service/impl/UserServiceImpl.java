@@ -2,12 +2,21 @@ package com.puxinxiaolin.xiaolinshu.user.biz.service.impl;
 
 import com.google.common.base.Preconditions;
 import com.puxinxiaolin.framework.biz.context.holder.LoginUserContextHolder;
+import com.puxinxiaolin.framework.common.enums.DeletedEnum;
+import com.puxinxiaolin.framework.common.enums.StatusEnum;
 import com.puxinxiaolin.framework.common.exception.BizException;
 import com.puxinxiaolin.framework.common.response.Response;
+import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.framework.common.util.ParamUtils;
-import com.puxinxiaolin.xiaolinshu.oss.api.api.FileFeignApi;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.req.RegisterUserReqDTO;
+import com.puxinxiaolin.xiaolinshu.user.biz.constant.RedisKeyConstants;
+import com.puxinxiaolin.xiaolinshu.user.biz.constant.RoleConstants;
+import com.puxinxiaolin.xiaolinshu.user.biz.domain.dataobject.RoleDO;
 import com.puxinxiaolin.xiaolinshu.user.biz.domain.dataobject.UserDO;
+import com.puxinxiaolin.xiaolinshu.user.biz.domain.dataobject.UserRoleDO;
+import com.puxinxiaolin.xiaolinshu.user.biz.domain.mapper.RoleDOMapper;
 import com.puxinxiaolin.xiaolinshu.user.biz.domain.mapper.UserDOMapper;
+import com.puxinxiaolin.xiaolinshu.user.biz.domain.mapper.UserRoleDOMapper;
 import com.puxinxiaolin.xiaolinshu.user.biz.enums.ResponseCodeEnum;
 import com.puxinxiaolin.xiaolinshu.user.biz.enums.SexEnum;
 import com.puxinxiaolin.xiaolinshu.user.biz.model.vo.UpdateUserInfoReqVO;
@@ -16,11 +25,15 @@ import com.puxinxiaolin.xiaolinshu.user.biz.service.UserService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -30,6 +43,12 @@ public class UserServiceImpl implements UserService {
     private UserDOMapper userDOMapper;
     @Resource
     private OssRpcService ossRpcService;
+    @Resource
+    private UserRoleDOMapper userRoleDOMapper;
+    @Resource
+    private RoleDOMapper roleDOMapper;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
     
     /**
      * 更新用户信息
@@ -48,7 +67,7 @@ public class UserServiceImpl implements UserService {
             // 调用存储服务上传文件 
             String avatarUrl = ossRpcService.uploadFile(avatar);
             
-            log.info("==> 调用 oss 服务成功, 上传头像, url: {}", avatar);
+            log.info("==> 调用 oss 服务成功, 上传头像, url: {}", avatarUrl);
             if (StringUtils.isBlank(avatarUrl)) {
                 throw new BizException(ResponseCodeEnum.UPLOAD_AVATAR_FAIL);
             }
@@ -112,5 +131,58 @@ public class UserServiceImpl implements UserService {
         }
         return Response.success();
     }
-    
+
+    /**
+     * 用户注册
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response<Long> register(RegisterUserReqDTO request) {
+        String phone = request.getPhone();
+        
+        UserDO exist = userDOMapper.selectByPhone(phone);
+        log.info("==> 用户是否注册, phone: {}, userDO: {}", phone, JsonUtils.toJsonString(exist));
+        
+        if (Objects.nonNull(exist)) {
+            return Response.success(exist.getId());
+        }
+ 
+        Long xiaolinshuId = redisTemplate.opsForValue()
+                .increment(RedisKeyConstants.XIAOLINSHU_ID_GENERATOR_KEY);
+        UserDO userDO = UserDO.builder()
+                .phone(phone)
+                .xiaolinshuId(String.valueOf(xiaolinshuId))
+                .nickname("小林薯" + xiaolinshuId) 
+                .status(StatusEnum.ENABLE.getValue())
+                .createTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
+                .isDeleted(DeletedEnum.NO.getValue())
+                .build();
+        userDOMapper.insert(userDO);
+
+        Long userId = userDO.getId();
+        UserRoleDO userRoleDO = UserRoleDO.builder()
+                .userId(userId)
+                .roleId(RoleConstants.COMMON_USER_ROLE_ID)
+                .createTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())
+                .isDeleted(DeletedEnum.NO.getValue())
+                .build();
+        userRoleDOMapper.insert(userRoleDO);
+
+        RoleDO roleDO = roleDOMapper.selectByPrimaryKey(RoleConstants.COMMON_USER_ROLE_ID);
+        
+        List<String> roles = new ArrayList<>(1);
+        roles.add(roleDO.getRoleKey());
+
+        String userRolesKey = RedisKeyConstants.buildUserRoleKey(userId);
+        redisTemplate.opsForValue()
+                .set(userRolesKey, JsonUtils.toJsonString(roles));
+
+        return Response.success(userId);
+    }
+
 }
