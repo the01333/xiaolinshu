@@ -26,12 +26,6 @@ spring:
             - Path=/auth/**
           filters:
             - StripPrefix=1
-        - id: xiaolinshu-oss
-          uri: lb://xiaolinshu-oss
-          predicates:
-            - Path=/oss/**
-          filters:
-            - StripPrefix=1
         - id: xiaolinshu-user
           uri: lb://xiaolinshu-user
           predicates:

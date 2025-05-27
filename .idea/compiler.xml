@@ -16,8 +16,10 @@
         </processorPath>
         <module name="xiaolinshu-spring-boot-starter-biz-context" />
         <module name="xiaolinshu-spring-boot-starter-biz-operationlog" />
+        <module name="xiaolinshu-kv-biz" />
         <module name="xiaolinshu-spring-boot-starter-jackson" />
         <module name="xiaolinshu-oss-biz" />
+        <module name="xiaolinshu-kv-api" />
         <module name="xiaolinshu-gateway" />
         <module name="xiaolinshu-user-api" />
         <module name="xiaolinshu-auth" />

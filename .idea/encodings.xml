@@ -17,6 +17,12 @@
     <file url="file://$PROJECT_DIR$/xiaolinshu-framework/xiaolinshu-spring-boot-starter-jackson/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-kv/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-kv/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-kv/xiaolinshu-kv-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-kv/xiaolinshu-kv-api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-kv/xiaolinshu-kv-biz/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-kv/xiaolinshu-kv-biz/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-oss/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-oss/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-oss/xiaolinshu-oss-api/src/main/java" charset="UTF-8" />

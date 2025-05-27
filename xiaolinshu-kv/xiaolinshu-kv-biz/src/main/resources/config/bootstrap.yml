@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: xiaolinshu-kv
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        server-addr: 192.168.101.17:8848
+        group: DEFAULT_GROUP
+        namespace: xiaolinshu

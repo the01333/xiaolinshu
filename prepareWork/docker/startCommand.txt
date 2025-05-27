@@ -19,3 +19,17 @@ docker run -d \
    -e "MINIO_ROOT_USER=puxinxiaolin" \
    -e "MINIO_ROOT_PASSWORD=puxinxiaolin" \
    minio/minio:RELEASE.2023-09-30T07-02-29Z server /data --console-address ":9090"
+
+4. cassandra
+docker run --name cassandra \
+--restart=always -d \
+-p 9042:9042 \
+-v /soft/docker/cassandra/data:/var/lib/cassandra \
+cassandra:latest
+
+5. zookeeper
+docker run -d --name zookeeper --restart=always \
+-p 2181:2181 -e TZ="Asia/Shanghai" \
+-v /soft/docker/zookeeper/data:/data \
+-v /soft/docker/zookeeper/conf:/conf \
+zookeeper:3.5.6

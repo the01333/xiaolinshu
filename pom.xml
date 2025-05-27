@@ -19,6 +19,7 @@
         <module>xiaolinshu-gateway</module>
         <module>xiaolinshu-oss</module>
         <module>xiaolinshu-user</module>
+        <module>xiaolinshu-kv</module>
     </modules>
 
     <properties>
@@ -83,6 +84,11 @@
             <dependency>
                 <groupId>com.puxinxiaolin</groupId>
                 <artifactId>xiaolinshu-user-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.puxinxiaolin</groupId>
+                <artifactId>xiaolinshu-kv-api</artifactId>
                 <version>${revision}</version>
             </dependency>
 
