@@ -23,6 +23,7 @@ import com.puxinxiaolin.xiaolinshu.user.biz.domain.mapper.UserRoleDOMapper;
 import com.puxinxiaolin.xiaolinshu.user.biz.enums.ResponseCodeEnum;
 import com.puxinxiaolin.xiaolinshu.user.biz.enums.SexEnum;
 import com.puxinxiaolin.xiaolinshu.user.biz.model.vo.UpdateUserInfoReqVO;
+import com.puxinxiaolin.xiaolinshu.user.biz.rpc.DistributedIdGeneratorRpcService;
 import com.puxinxiaolin.xiaolinshu.user.biz.rpc.OssRpcService;
 import com.puxinxiaolin.xiaolinshu.user.biz.service.UserService;
 import jakarta.annotation.Resource;
@@ -52,6 +53,8 @@ public class UserServiceImpl implements UserService {
     private RoleDOMapper roleDOMapper;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private DistributedIdGeneratorRpcService distributedIdGeneratorRpcService;
     
     /**
      * 更新用户信息
@@ -152,12 +155,15 @@ public class UserServiceImpl implements UserService {
         if (Objects.nonNull(exist)) {
             return Response.success(exist.getId());
         }
- 
-        Long xiaolinshuId = redisTemplate.opsForValue()
-                .increment(RedisKeyConstants.XIAOLINSHU_ID_GENERATOR_KEY);
+        
+        // 走 rpc 拿分布式 ID, 替换原有的 redis 的 ID 自增器
+        String xiaolinshuId = distributedIdGeneratorRpcService.getXiaolinshuId();
+        String userIdStr = distributedIdGeneratorRpcService.getUserId();
+
         UserDO userDO = UserDO.builder()
+                .id(Long.valueOf(userIdStr))
                 .phone(phone)
-                .xiaolinshuId(String.valueOf(xiaolinshuId))
+                .xiaolinshuId(xiaolinshuId)
                 .nickname("小林薯" + xiaolinshuId) 
                 .status(StatusEnum.ENABLE.getValue())
                 .createTime(LocalDateTime.now())

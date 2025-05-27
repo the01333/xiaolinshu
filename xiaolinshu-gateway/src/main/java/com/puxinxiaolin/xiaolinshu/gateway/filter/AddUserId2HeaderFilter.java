@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
  */
 @Component         
 @Slf4j
+@Order(-90)   // 确保执行顺序慢于 SaReactorFilter, 这个过滤器的执行顺序值为 -100（最高优先级）
 public class AddUserId2HeaderFilter implements GlobalFilter {
 
     private static final String HEADER_USER_ID = "userId";

@@ -20,6 +20,7 @@
         <module>xiaolinshu-oss</module>
         <module>xiaolinshu-user</module>
         <module>xiaolinshu-kv</module>
+        <module>xiaolinshu-distributed-id-generator</module>
     </modules>
 
     <properties>
@@ -89,6 +90,11 @@
             <dependency>
                 <groupId>com.puxinxiaolin</groupId>
                 <artifactId>xiaolinshu-kv-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.puxinxiaolin</groupId>
+                <artifactId>xiaolinshu-distributed-id-generator-api</artifactId>
                 <version>${revision}</version>
             </dependency>
 

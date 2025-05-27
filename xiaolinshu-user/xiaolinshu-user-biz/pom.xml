@@ -39,6 +39,10 @@
             <groupId>com.puxinxiaolin</groupId>
             <artifactId>xiaolinshu-user-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.puxinxiaolin</groupId>
+            <artifactId>xiaolinshu-distributed-id-generator-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
