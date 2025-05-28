@@ -12,10 +12,14 @@ import com.puxinxiaolin.xiaolinshu.note.biz.enums.NoteStatusEnum;
 import com.puxinxiaolin.xiaolinshu.note.biz.enums.NoteTypeEnum;
 import com.puxinxiaolin.xiaolinshu.note.biz.enums.NoteVisibleEnum;
 import com.puxinxiaolin.xiaolinshu.note.biz.enums.ResponseCodeEnum;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailReqVO;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailRspVO;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.PublishNoteReqVO;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.DistributedIdGeneratorRpcService;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.KeyValueRpcService;
+import com.puxinxiaolin.xiaolinshu.note.biz.rpc.UserRpcService;
 import com.puxinxiaolin.xiaolinshu.note.biz.service.NoteService;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByIdRspDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +41,8 @@ public class NoteServiceImpl implements NoteService {
     private DistributedIdGeneratorRpcService distributedIdGeneratorRpcService;
     @Resource
     private KeyValueRpcService keyValueRpcService;
+    @Resource
+    private UserRpcService userRpcService;
 
     /**
      * 笔记发布
@@ -81,7 +87,7 @@ public class NoteServiceImpl implements NoteService {
             isContentEmpty = false;
             contentUuid = UUID.randomUUID().toString();
             boolean isSavedSuccess = keyValueRpcService.saveNoteContent(contentUuid, content);
-            
+
             if (!isSavedSuccess) {
                 throw new BizException(ResponseCodeEnum.NOTE_PUBLISH_FAIL);
             }
@@ -111,7 +117,7 @@ public class NoteServiceImpl implements NoteService {
                 .isTop(Boolean.FALSE)
                 .contentUuid(contentUuid)
                 .build();
-        
+
         try {
             noteDOMapper.insert(noteDO);
         } catch (Exception e) {
@@ -122,8 +128,76 @@ public class NoteServiceImpl implements NoteService {
                 keyValueRpcService.deleteNoteContent(contentUuid);
             }
         }
-        
+
         return Response.success();
+    }
+
+    /**
+     * 查询笔记详情
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<FindNoteDetailRspVO> findNoteDetail(FindNoteDetailReqVO request) {
+        Long noteId = request.getId();
+        Long userId = LoginUserContextHolder.getUserId();
+
+        NoteDO noteDO = noteDOMapper.selectByPrimaryKey(noteId);
+        if (Objects.isNull(noteDO)) {
+            throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+        }
+
+        Integer visible = noteDO.getVisible();
+        checkNoteVisible(visible, userId, noteDO.getCreatorId());
+        
+        // 走 rpc
+        Long creatorId = noteDO.getCreatorId();
+        FindUserByIdRspDTO findUserByIdRspDTO = userRpcService.findById(creatorId);
+        
+        String content = null;
+        if (Objects.equals(noteDO.getIsContentEmpty(), Boolean.FALSE)) {
+            content = keyValueRpcService.findNoteContent(noteDO.getContentUuid());
+        }
+
+        Integer type = noteDO.getType();
+        String imgUrisStr = noteDO.getImgUris();
+        List<String> imgUris = null;
+        if (Objects.equals(type, NoteTypeEnum.IMAGE_TEXT.getCode())
+                && StringUtils.isNotBlank(imgUrisStr)) {
+            imgUris = List.of(imgUrisStr.split(","));
+        }
+
+        FindNoteDetailRspVO vo = FindNoteDetailRspVO.builder()
+                .id(noteDO.getId())
+                .type(noteDO.getType())
+                .title(noteDO.getTitle())
+                .content(content)
+                .imgUris(imgUris)
+                .topicId(noteDO.getTopicId())
+                .topicName(noteDO.getTopicName())
+                .creatorId(noteDO.getCreatorId())
+                .creatorName(findUserByIdRspDTO.getNickName())
+                .avatar(findUserByIdRspDTO.getAvatar())
+                .videoUri(noteDO.getVideoUri())
+                .updateTime(noteDO.getUpdateTime())
+                .visible(noteDO.getVisible())
+                .build();
+        return Response.success(vo);
+    }
+
+    /**
+     * 检查笔记是否可见
+     *
+     * @param visible
+     * @param userId
+     * @param creatorId
+     */
+    private void checkNoteVisible(Integer visible, Long userId, Long creatorId) {
+        if (Objects.equals(visible, NoteVisibleEnum.PRIVATE.getCode())
+                && !Objects.equals(userId, creatorId)) {
+            throw new BizException(ResponseCodeEnum.NOTE_PRIVATE);
+        }
     }
 
 }

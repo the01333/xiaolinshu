@@ -245,7 +245,7 @@ public class UserServiceImpl implements UserService {
         UserDO userDO = UserDO.builder()
                 .id(userId)
                 .password(request.getEncodePassword())
-                .updateTime(LocalDateTime.now())
+                .updateTime(LocalDateTime.now())          
                 .build();
 
         userDOMapper.updateByPrimaryKeySelective(userDO);

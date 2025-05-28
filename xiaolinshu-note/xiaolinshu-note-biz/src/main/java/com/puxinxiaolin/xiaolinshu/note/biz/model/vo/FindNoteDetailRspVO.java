@@ -1,4 +1,4 @@
-package com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject;
+package com.puxinxiaolin.xiaolinshu.note.biz.model.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,41 +6,39 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class NoteDO {
-    
+public class FindNoteDetailRspVO {
+
     private Long id;
+
+    private Integer type;
 
     private String title;
 
-    private Boolean isContentEmpty;
+    private String content;
 
-    private Long creatorId;
+    private List<String> imgUris;
 
     private Long topicId;
 
     private String topicName;
 
-    private Boolean isTop;
-
-    private Integer type;
-
-    private String imgUris;
+    private String avatar;
 
     private String videoUri;
 
-    private Integer visible;
+    private Long creatorId;
 
-    private LocalDateTime createTime;
-
+    private String creatorName;
+    
     private LocalDateTime updateTime;
 
-    private Integer status;
+    private Integer visible;
 
-    private String contentUuid;
-    
 }
+

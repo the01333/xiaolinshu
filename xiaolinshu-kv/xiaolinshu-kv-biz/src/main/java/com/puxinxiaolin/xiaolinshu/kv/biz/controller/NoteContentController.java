@@ -4,6 +4,7 @@ import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.AddNoteContentReqDTO;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.DeleteNoteContentReqDTO;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.FindNoteContentReqDTO;
+import com.puxinxiaolin.xiaolinshu.kv.api.dto.rsp.FindNoteContentRspDTO;
 import com.puxinxiaolin.xiaolinshu.kv.biz.service.NoteContentService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +40,7 @@ public class NoteContentController {
      * @return
      */
     @PostMapping("/note/content/find")
-    public Response<?> findNoteContent(@RequestBody @Validated FindNoteContentReqDTO request) {
+    public Response<FindNoteContentRspDTO> findNoteContent(@RequestBody @Validated FindNoteContentReqDTO request) {
         return noteContentService.findNoteContent(request);
     }
 

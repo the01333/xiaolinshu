@@ -61,5 +61,5 @@ public class UserController {
     public Response<FindUserByIdRspDTO> findById(@Validated @RequestBody FindUserByIdReqDTO request) {
         return userService.findById(request);
     }
-
+    
 }
