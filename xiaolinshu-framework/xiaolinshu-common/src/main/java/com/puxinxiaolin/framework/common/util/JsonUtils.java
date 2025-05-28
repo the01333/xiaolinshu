@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 
 public class JsonUtils {
 
@@ -27,6 +28,24 @@ public class JsonUtils {
     public static String toJsonString(Object obj) {
         return OBJECT_MAPPER.writeValueAsString(obj);
     }
+
+    /**
+     * 将 JSON 字符串转换为对象
+     *
+     * @param jsonStr
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    @SneakyThrows
+    public static <T> T parseObject(String jsonStr, Class<T> clazz) {
+        if (StringUtils.isBlank(jsonStr)) {
+            return null;
+        }
+
+        return OBJECT_MAPPER.readValue(jsonStr, clazz);
+    }
+
 
     /**
      * 初始化：统一使用 Spring Boot 个性化配置的 ObjectMapper
