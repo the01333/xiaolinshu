@@ -17,8 +17,8 @@
         <module name="xiaolinshu-note-api" />
         <module name="xiaolinshu-gateway" />
         <module name="xiaolinshu-distributed-id-generator-api" />
-        <module name="xiaolinshu-user-api" />
         <module name="xiaolinshu-note-biz" />
+        <module name="xiaolinshu-user-api" />
         <module name="xiaolinshu-distributed-id-generator-biz" />
         <module name="xiaolinshu-user-biz" />
         <module name="xiaolinshu-spring-boot-starter-biz-context" />
