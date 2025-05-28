@@ -2,9 +2,11 @@ package com.puxinxiaolin.xiaolinshu.user.biz.controller;
 
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.Response;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.req.FindUserByIdReqDTO;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.req.FindUserByPhoneReqDTO;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.req.RegisterUserReqDTO;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByIdRspDTO;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByPhoneRspDTO;
 import com.puxinxiaolin.xiaolinshu.user.biz.model.vo.UpdateUserInfoReqVO;
 import com.puxinxiaolin.xiaolinshu.user.biz.service.UserService;
@@ -26,7 +28,7 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 用户信息修改
+     * 修改用户信息
      *
      * @param request
      * @return
@@ -52,6 +54,12 @@ public class UserController {
     @ApiOperationLog(description = "修改密码")
     public Response<?> updatePassword(@Validated @RequestBody UpdateUserPasswordReqDTO request) {
         return userService.updatePassword(request);
+    }
+
+    @PostMapping("/findById")
+    @ApiOperationLog(description = "查询用户信息")
+    public Response<FindUserByIdRspDTO> findById(@Validated @RequestBody FindUserByIdReqDTO request) {
+        return userService.findById(request);
     }
 
 }
