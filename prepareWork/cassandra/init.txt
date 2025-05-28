@@ -1,0 +1,9 @@
+CREATE KEYSPACE IF NOT EXISTS xiaolinshu
+WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+
+use xiaolinshu;
+
+CREATE TABLE note_content (
+    id UUID PRIMARY KEY,
+    content TEXT
+);

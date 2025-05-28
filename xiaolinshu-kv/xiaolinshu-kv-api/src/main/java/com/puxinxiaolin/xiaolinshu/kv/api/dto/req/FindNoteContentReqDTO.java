@@ -1,6 +1,6 @@
 package com.puxinxiaolin.xiaolinshu.kv.api.dto.req;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class FindNoteContentReqDTO {
-    
-    @NotNull(message = "笔记 ID 不能为空")
-    private String noteId;
+
+    @NotBlank(message = "笔记内容 UUID 不能为空")
+    private String uuid;
     
 }

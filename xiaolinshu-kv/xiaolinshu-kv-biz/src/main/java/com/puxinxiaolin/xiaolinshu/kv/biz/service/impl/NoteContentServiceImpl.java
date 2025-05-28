@@ -32,11 +32,11 @@ public class NoteContentServiceImpl implements NoteContentService {
      */
     @Override
     public Response<?> addNoteContent(AddNoteContentReqDTO request) {
-        Long noteId = request.getNoteId();
+        String uuid = request.getUuid();
         String content = request.getContent();
 
         NoteContentDO noteContentDO = NoteContentDO.builder()
-                .id(UUID.randomUUID())   // TODO [YCcLin 2025/5/26]: 后续从笔记服务获取笔记 ID 
+                .id(UUID.fromString(uuid))   // TODO [YCcLin 2025/5/26]: 后续从笔记服务获取笔记 ID 
                 .content(content)
                 .build();
 
@@ -52,19 +52,19 @@ public class NoteContentServiceImpl implements NoteContentService {
      */
     @Override
     public Response<FindNoteContentRspDTO> findNoteContent(FindNoteContentReqDTO request) {
-        String noteId = request.getNoteId();
+        String uuid = request.getUuid();
 
-        Optional<NoteContentDO> optional = noteContentRepository.findById(UUID.fromString(noteId));
+        Optional<NoteContentDO> optional = noteContentRepository.findById(UUID.fromString(uuid));
         if (optional.isEmpty()) {
             throw new BizException(ResponseCodeEnum.NOTE_CONTENT_NOT_FOUND);
         }
 
         NoteContentDO noteContentDO = optional.get();
         FindNoteContentRspDTO response = FindNoteContentRspDTO.builder()
-                .noteId(noteContentDO.getId())
+                .uuid(noteContentDO.getId())
                 .content(noteContentDO.getContent())
                 .build();
-        
+
         return Response.success(response);
     }
 
@@ -76,8 +76,8 @@ public class NoteContentServiceImpl implements NoteContentService {
      */
     @Override
     public Response<?> deleteNoteContent(DeleteNoteContentReqDTO request) {
-        String noteId = request.getNoteId();
-        noteContentRepository.deleteById(UUID.fromString(noteId));
+        String uuid = request.getUuid();
+        noteContentRepository.deleteById(UUID.fromString(uuid));
 
         return Response.success();
     }
