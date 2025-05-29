@@ -4,6 +4,7 @@ import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailReqVO;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailRspVO;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.PublishNoteReqVO;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.UpdateNoteReqVO;
 
 public interface NoteService {
 
@@ -22,5 +23,13 @@ public interface NoteService {
      * @return
      */
     Response<FindNoteDetailRspVO> findNoteDetail(FindNoteDetailReqVO request);
+
+    /**
+     * 更新笔记
+     *
+     * @param request
+     * @return
+     */
+    Response<?> updateNote(UpdateNoteReqVO request);
 
 }

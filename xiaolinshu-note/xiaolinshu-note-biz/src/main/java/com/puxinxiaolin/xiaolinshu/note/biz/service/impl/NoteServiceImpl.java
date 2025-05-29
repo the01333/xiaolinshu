@@ -20,6 +20,7 @@ import com.puxinxiaolin.xiaolinshu.note.biz.enums.ResponseCodeEnum;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailReqVO;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailRspVO;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.PublishNoteReqVO;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.UpdateNoteReqVO;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.DistributedIdGeneratorRpcService;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.KeyValueRpcService;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.UserRpcService;
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -265,6 +267,90 @@ public class NoteServiceImpl implements NoteService {
                     .set(key, resultJson, expireSeconds, TimeUnit.SECONDS);
         });
         return Response.success(vo);
+    }
+
+    /**
+     * 更新笔记
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Response<?> updateNote(UpdateNoteReqVO request) {
+        Long noteId = request.getId();
+        Integer type = request.getType();
+
+        NoteTypeEnum noteTypeEnum = NoteTypeEnum.valueOf(type);
+        if (noteTypeEnum == null) {
+            throw new BizException(ResponseCodeEnum.NOTE_TYPE_ERROR);
+        }
+
+        String imgUris = null;
+        String videoUri = null;
+        switch (noteTypeEnum) {
+            case IMAGE_TEXT -> {
+                List<String> imgUriList = request.getImgUris();
+
+                Preconditions.checkArgument(CollUtil.isNotEmpty(imgUriList), "笔记图片不能为空");
+
+                imgUris = StringUtils.join(imgUriList, ",");
+            }
+            case VIDEO -> {
+                videoUri = request.getVideoUri();
+
+                Preconditions.checkArgument(StringUtils.isNotBlank(videoUri), "笔记视频不能为空");
+            }
+            default -> {
+            }
+        }
+
+        Long topicId = request.getTopicId();
+        String topicName = null;
+        if (topicId != null) {
+            topicName = topicDOMapper.selectNameByPrimaryKey(topicId);
+            if (StringUtils.isBlank(topicName)) {
+                throw new BizException(ResponseCodeEnum.TOPIC_NOT_FOUND);
+            }
+        }
+        
+        String content = request.getContent();
+        NoteDO noteDO = NoteDO.builder()
+                .id(noteId)
+                .isContentEmpty(StringUtils.isBlank(content))
+                .imgUris(imgUris)
+                .title(request.getTitle())
+                .topicId(request.getTopicId())
+                .topicName(topicName)
+                .type(type)
+                .updateTime(LocalDateTime.now())
+                .videoUri(videoUri)
+                .build();
+        noteDOMapper.updateByPrimaryKeySelective(noteDO);
+        
+        // 删除缓存（redis + caffeine）
+        String key = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(key);
+        
+        LOCAL_CACHE.invalidate(noteId);
+
+        NoteDO existed = noteDOMapper.selectByPrimaryKey(noteId);
+        String contentUuid = existed.getContentUuid();
+        
+        boolean isUpdatedSuccess = false;
+        if (StringUtils.isBlank(content)) { 
+            isUpdatedSuccess = keyValueRpcService.deleteNoteContent(contentUuid);
+        } else {
+            contentUuid = StringUtils.isBlank(contentUuid) ? UUID.randomUUID().toString() : contentUuid;
+            
+            isUpdatedSuccess = keyValueRpcService.saveNoteContent(contentUuid, content);
+        }
+        
+        if (!isUpdatedSuccess) {
+            throw new BizException(ResponseCodeEnum.NOTE_UPDATE_FAIL);
+        }
+        
+        return Response.success();
     }
 
     /**
