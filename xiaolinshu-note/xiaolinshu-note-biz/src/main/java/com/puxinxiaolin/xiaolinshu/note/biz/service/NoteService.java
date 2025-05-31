@@ -1,10 +1,7 @@
 package com.puxinxiaolin.xiaolinshu.note.biz.service;
 
 import com.puxinxiaolin.framework.common.response.Response;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailReqVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailRspVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.PublishNoteReqVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.UpdateNoteReqVO;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.*;
 
 public interface NoteService {
 
@@ -38,5 +35,29 @@ public interface NoteService {
      * @param noteId
      */
     void deleteNoteLocalCache(Long noteId);
+
+    /**
+     * 删除笔记
+     *
+     * @param request
+     * @return
+     */
+    Response<?> deleteNote(DeleteNoteReqVO request);
+
+    /**
+     * 笔记仅对自己可见
+     *
+     * @param request
+     * @return
+     */
+    Response<?> visibleOnlyMe(UpdateNoteVisibleOnlyMeReqVO request);
+
+    /**
+     * 笔记置顶 / 取消置顶
+     *
+     * @param request
+     * @return
+     */
+    Response<?> topNote(TopNoteReqVO request);
 
 }

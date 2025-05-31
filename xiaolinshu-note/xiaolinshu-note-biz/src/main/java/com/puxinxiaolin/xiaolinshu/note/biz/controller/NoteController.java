@@ -2,10 +2,7 @@ package com.puxinxiaolin.xiaolinshu.note.biz.controller;
 
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.Response;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailReqVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailRspVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.PublishNoteReqVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.UpdateNoteReqVO;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.*;
 import com.puxinxiaolin.xiaolinshu.note.biz.service.NoteService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +36,24 @@ public class NoteController {
     @ApiOperationLog(description = "笔记修改")
     public Response<?> updateNote(@Validated @RequestBody UpdateNoteReqVO request) {
         return noteService.updateNote(request);
+    }
+
+    @PostMapping(value = "/delete")
+    @ApiOperationLog(description = "删除笔记")
+    public Response<?> deleteNote(@Validated @RequestBody DeleteNoteReqVO request) {
+        return noteService.deleteNote(request);
+    }
+
+    @PostMapping(value = "/visible/onlyme")
+    @ApiOperationLog(description = "笔记仅对自己可见")
+    public Response<?> visibleOnlyMe(@Validated @RequestBody UpdateNoteVisibleOnlyMeReqVO request) {
+        return noteService.visibleOnlyMe(request);
+    }
+
+    @PostMapping(value = "/top")
+    @ApiOperationLog(description = "置顶/取消置顶笔记")
+    public Response<?> topNote(@Validated @RequestBody TopNoteReqVO request) {
+        return noteService.topNote(request);
     }
     
 }

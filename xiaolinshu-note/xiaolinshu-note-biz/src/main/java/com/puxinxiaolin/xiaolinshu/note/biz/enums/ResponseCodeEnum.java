@@ -19,6 +19,8 @@ public enum ResponseCodeEnum implements BaseExceptionInterface {
     NOTE_PRIVATE("NOTE-20003", "该笔记仅作者自己可见"),
     NOTE_UPDATE_FAIL("NOTE-20004", "笔记更新失败"),
     TOPIC_NOT_FOUND("NOTE-20005", "话题不存在"),
+    NOTE_CANT_VISIBLE_ONLY_ME("NOTE-20006", "此笔记无法修改为仅自己可见"),
+    NOTE_CANT_OPERATE("NOTE-20007", "您无法操作该笔记"),
     ;
     
     private final String errorCode;

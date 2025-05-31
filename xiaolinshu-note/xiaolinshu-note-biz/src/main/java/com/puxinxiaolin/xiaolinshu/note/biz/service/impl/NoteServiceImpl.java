@@ -18,10 +18,7 @@ import com.puxinxiaolin.xiaolinshu.note.biz.enums.NoteStatusEnum;
 import com.puxinxiaolin.xiaolinshu.note.biz.enums.NoteTypeEnum;
 import com.puxinxiaolin.xiaolinshu.note.biz.enums.NoteVisibleEnum;
 import com.puxinxiaolin.xiaolinshu.note.biz.enums.ResponseCodeEnum;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailReqVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.FindNoteDetailRspVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.PublishNoteReqVO;
-import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.UpdateNoteReqVO;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.*;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.DistributedIdGeneratorRpcService;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.KeyValueRpcService;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.UserRpcService;
@@ -387,6 +384,109 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public void deleteNoteLocalCache(Long noteId) {
         LOCAL_CACHE.invalidate(noteId);
+    }
+
+    /**
+     * 删除笔记
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> deleteNote(DeleteNoteReqVO request) {
+        Long noteId = request.getId();
+        NoteDO noteDO = NoteDO.builder()
+                .id(noteId)
+                .status(NoteStatusEnum.DELETED.getCode())
+                .updateTime(LocalDateTime.now())
+                .build();
+
+        int count = noteDOMapper.updateByPrimaryKeySelective(noteDO);
+        if (count == 0) {
+            throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+        }
+
+        String key = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(key);
+
+        // 用 broadcast 模式把所有实例的本地缓存都删除掉
+        removeLocalCacheByMQBroadcast(noteId);
+
+        return Response.success();
+    }
+
+    /**
+     * 笔记仅对自己可见
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> visibleOnlyMe(UpdateNoteVisibleOnlyMeReqVO request) {
+        Long noteId = request.getId();
+
+        NoteDO noteDO = NoteDO.builder()
+                .id(noteId)
+                .visible(NoteVisibleEnum.PRIVATE.getCode())
+                .updateTime(LocalDateTime.now())
+                .build();
+
+        int count = noteDOMapper.updateVisibleOnlyMe(noteDO);
+        if (count == 0) {
+            throw new BizException(ResponseCodeEnum.NOTE_CANT_VISIBLE_ONLY_ME);
+        }
+
+        String noteDetailRedisKey = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(noteDetailRedisKey);
+
+        // 用 broadcast 模式把所有实例的本地缓存都删除掉
+        removeLocalCacheByMQBroadcast(noteId);
+
+        return Response.success();
+
+    }
+
+    /**
+     * 笔记置顶 / 取消置顶
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> topNote(TopNoteReqVO request) {
+        Long noteId = request.getId();
+        Boolean isTop = request.getIsTop();
+        Long currentUserId = LoginUserContextHolder.getUserId();
+
+        NoteDO noteDO = NoteDO.builder()
+                .id(noteId)
+                .isTop(isTop)
+                .updateTime(LocalDateTime.now())
+                .creatorId(currentUserId)
+                .build();
+
+        int count = noteDOMapper.updateIsTop(noteDO);
+        if (count == 0) {
+            throw new BizException(ResponseCodeEnum.NOTE_CANT_OPERATE);
+        }
+
+        String key = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(key);
+
+        // 用 broadcast 模式把所有实例的本地缓存都删除掉
+        removeLocalCacheByMQBroadcast(noteId);
+
+        return Response.success();
+    }
+
+    /**
+     * 用 broadcast 模式把所有实例的本地缓存都删除掉
+     *
+     * @param noteId
+     */
+    private void removeLocalCacheByMQBroadcast(Long noteId) {
+        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+        log.info("====> MQ: 删除笔记本地缓存发送成功...");
     }
 
     /**
