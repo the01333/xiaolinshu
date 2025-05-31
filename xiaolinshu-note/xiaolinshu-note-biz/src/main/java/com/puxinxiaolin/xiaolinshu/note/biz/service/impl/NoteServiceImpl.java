@@ -9,6 +9,7 @@ import com.puxinxiaolin.framework.biz.context.holder.LoginUserContextHolder;
 import com.puxinxiaolin.framework.common.exception.BizException;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
+import com.puxinxiaolin.xiaolinshu.note.biz.constant.MQConstants;
 import com.puxinxiaolin.xiaolinshu.note.biz.constant.RedisKeyConstants;
 import com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteDO;
 import com.puxinxiaolin.xiaolinshu.note.biz.domain.mapper.NoteDOMapper;
@@ -30,7 +31,12 @@ import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +65,8 @@ public class NoteServiceImpl implements NoteService {
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
 
     private static final Cache<Long, String> LOCAL_CACHE = Caffeine.newBuilder()
             .initialCapacity(10000)
@@ -82,7 +90,7 @@ public class NoteServiceImpl implements NoteService {
 
         String imgUris = null;
         // 笔记内容是否为空, 默认值为 true, 即空
-        Boolean isContentEmpty = true;
+        boolean isContentEmpty = true;
         String videoUri = null;
         switch (noteTypeEnum) {
             case VIDEO -> {
@@ -313,7 +321,11 @@ public class NoteServiceImpl implements NoteService {
                 throw new BizException(ResponseCodeEnum.TOPIC_NOT_FOUND);
             }
         }
-        
+
+        // 删除缓存（redis + caffeine）
+        String key = RedisKeyConstants.buildNoteDetailKey(noteId);
+        redisTemplate.delete(key);
+
         String content = request.getContent();
         NoteDO noteDO = NoteDO.builder()
                 .id(noteId)
@@ -327,30 +339,54 @@ public class NoteServiceImpl implements NoteService {
                 .videoUri(videoUri)
                 .build();
         noteDOMapper.updateByPrimaryKeySelective(noteDO);
-        
-        // 删除缓存（redis + caffeine）
-        String key = RedisKeyConstants.buildNoteDetailKey(noteId);
-        redisTemplate.delete(key);
-        
-        LOCAL_CACHE.invalidate(noteId);
+
+        // 一致性保证: 延迟双删策略（用延时消息代替 redis 直接删除缓存）
+        // 异步发送延时消息
+        Message<String> message = MessageBuilder.withPayload(String.valueOf(noteId))
+                .build();
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_DELAY_DELETE_NOTE_REDIS_CACHE, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("## 延时删除 Redis 笔记缓存消息发送成功...");
+            }
+
+            @Override
+            public void onException(Throwable e) {
+                log.error("## 延时删除 Redis 笔记缓存消息发送失败...", e);
+            }
+        }, 3000, 1);
+
+        // 用 broadcast 模式把所有实例的本地缓存都删除掉
+        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
+        log.info("====> MQ: 删除笔记本地缓存消息发送成功...");
 
         NoteDO existed = noteDOMapper.selectByPrimaryKey(noteId);
         String contentUuid = existed.getContentUuid();
-        
+
         boolean isUpdatedSuccess = false;
-        if (StringUtils.isBlank(content)) { 
+        if (StringUtils.isBlank(content)) {
             isUpdatedSuccess = keyValueRpcService.deleteNoteContent(contentUuid);
         } else {
             contentUuid = StringUtils.isBlank(contentUuid) ? UUID.randomUUID().toString() : contentUuid;
-            
+
             isUpdatedSuccess = keyValueRpcService.saveNoteContent(contentUuid, content);
         }
-        
+
         if (!isUpdatedSuccess) {
             throw new BizException(ResponseCodeEnum.NOTE_UPDATE_FAIL);
         }
-        
+
         return Response.success();
+    }
+
+    /**
+     * 删除本地笔记缓存
+     *
+     * @param noteId
+     */
+    @Override
+    public void deleteNoteLocalCache(Long noteId) {
+        LOCAL_CACHE.invalidate(noteId);
     }
 
     /**
