@@ -21,7 +21,8 @@ public class AliyunOSSConfig {
                 aliyunOSSProperties.getSecretKey()
         );
 
-        return new OSSClientBuilder().build(aliyunOSSProperties.getEndpoint(), provider);
+        return new OSSClientBuilder()
+                .build(aliyunOSSProperties.getEndpoint(), provider);
     }
     
 }

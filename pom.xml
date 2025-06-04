@@ -22,6 +22,7 @@
         <module>xiaolinshu-kv</module>
         <module>xiaolinshu-distributed-id-generator</module>
         <module>xiaolinshu-note</module>
+        <module>xiaolinshu-user-relation</module>
     </modules>
 
     <properties>

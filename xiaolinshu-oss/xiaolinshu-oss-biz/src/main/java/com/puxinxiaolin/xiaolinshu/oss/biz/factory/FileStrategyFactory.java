@@ -1,6 +1,5 @@
 package com.puxinxiaolin.xiaolinshu.oss.biz.factory;
 
-import com.alibaba.nacos.api.config.annotation.NacosValue;
 import com.puxinxiaolin.xiaolinshu.oss.biz.config.StorageTypeProperties;
 import com.puxinxiaolin.xiaolinshu.oss.biz.strategy.FileStrategy;
 import com.puxinxiaolin.xiaolinshu.oss.biz.strategy.impl.AliyunOssFileStrategy;
