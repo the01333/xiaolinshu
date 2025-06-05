@@ -354,8 +354,7 @@ public class NoteServiceImpl implements NoteService {
         }, 3000, 1);
 
         // 用 broadcast 模式把所有实例的本地缓存都删除掉
-        rocketMQTemplate.syncSend(MQConstants.TOPIC_DELETE_NOTE_LOCAL_CACHE, noteId);
-        log.info("====> MQ: 删除笔记本地缓存消息发送成功...");
+        removeLocalCacheByMQBroadcast(noteId);
 
         NoteDO existed = noteDOMapper.selectByPrimaryKey(noteId);
         String contentUuid = existed.getContentUuid();

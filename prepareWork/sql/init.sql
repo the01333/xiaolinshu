@@ -198,3 +198,9 @@ CREATE TABLE `t_fans`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='用户粉丝表';
+
+ALTER TABLE t_following
+    ADD UNIQUE uk_user_id_following_user_id (user_id, following_user_id);
+
+ALTER TABLE t_fans
+    ADD UNIQUE uk_user_id_fans_user_id (user_id, fans_user_id);

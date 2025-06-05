@@ -20,20 +20,26 @@ spring:
   cloud:
     gateway:
       routes: 
-        - id: xiaolinshu-auth
+        - id: auth
           uri: lb://xiaolinshu-auth
           predicates:
             - Path=/auth/**
           filters:
             - StripPrefix=1
-        - id: xiaolinshu-user
+        - id: user
           uri: lb://xiaolinshu-user
           predicates:
             - Path=/user/**
           filters:
             - StripPrefix=1
-        - id: xiaolinshu-note
+        - id: note
           uri: lb://xiaolinshu-note
+          predicates:
+            - Path=/note/**
+          filters:
+            - StripPrefix=1
+        - id: user-relation
+          uri: lb://xiaolinshu-user-relation
           predicates:
             - Path=/note/**
           filters:
