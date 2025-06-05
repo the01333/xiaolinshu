@@ -310,6 +310,15 @@ public class NoteServiceImpl implements NoteService {
             }
         }
 
+        Long currUserId = LoginUserContextHolder.getUserId();
+        NoteDO exist = noteDOMapper.selectByPrimaryKey(noteId);
+        if (exist == null) {
+            throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+        }
+        if (!Objects.equals(currUserId, exist.getCreatorId())) {
+            throw new BizException(ResponseCodeEnum.NOTE_CANT_OPERATE);
+        }
+
         Long topicId = request.getTopicId();
         String topicName = null;
         if (topicId != null) {
@@ -394,6 +403,16 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public Response<?> deleteNote(DeleteNoteReqVO request) {
         Long noteId = request.getId();
+        NoteDO exist = noteDOMapper.selectByPrimaryKey(noteId);
+        if (exist == null) {
+            throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+        }
+        
+        Long currUserId = LoginUserContextHolder.getUserId();
+        if (!Objects.equals(currUserId, exist.getCreatorId())) {
+            throw new BizException(ResponseCodeEnum.NOTE_CANT_OPERATE);
+        }
+        
         NoteDO noteDO = NoteDO.builder()
                 .id(noteId)
                 .status(NoteStatusEnum.DELETED.getCode())
@@ -423,6 +442,15 @@ public class NoteServiceImpl implements NoteService {
     @Override
     public Response<?> visibleOnlyMe(UpdateNoteVisibleOnlyMeReqVO request) {
         Long noteId = request.getId();
+        NoteDO exist = noteDOMapper.selectByPrimaryKey(noteId);
+        if (Objects.isNull(exist)) {
+            throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
+        }
+
+        Long currUserId = LoginUserContextHolder.getUserId();
+        if (!Objects.equals(currUserId, exist.getCreatorId())) {
+            throw new BizException(ResponseCodeEnum.NOTE_CANT_OPERATE);
+        }
 
         NoteDO noteDO = NoteDO.builder()
                 .id(noteId)
