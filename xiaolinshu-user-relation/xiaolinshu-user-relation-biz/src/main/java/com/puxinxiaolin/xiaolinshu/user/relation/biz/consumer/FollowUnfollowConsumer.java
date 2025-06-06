@@ -10,9 +10,11 @@ import com.puxinxiaolin.xiaolinshu.user.relation.biz.domain.dataobject.Following
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.domain.mapper.FansDOMapper;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.domain.mapper.FollowingDOMapper;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.dto.FollowUserMqDTO;
+import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.dto.UnfollowUserMqDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.core.io.ClassPathResource;
@@ -30,7 +32,8 @@ import java.util.Objects;
 @Component
 @RocketMQMessageListener(
         consumerGroup = "xiaolinshu_group",
-        topic = MqConstants.TOPIC_FOLLOW_OR_UNFOLLOW
+        topic = MqConstants.TOPIC_FOLLOW_OR_UNFOLLOW,
+        consumeMode = ConsumeMode.ORDERLY
 )
 public class FollowUnfollowConsumer implements RocketMQListener<Message> {
     @Resource
@@ -47,9 +50,9 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
 
     @Override
     public void onMessage(Message message) {
-        // 获取到令牌才往下执行, 否则阻塞
+        // 流量削峰: 获取到令牌才往下执行, 否则阻塞
         rateLimiter.acquire();
-        
+
         String msgJson = new String(message.getBody());
         String tags = message.getTags();
 
@@ -59,6 +62,44 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
             handleFollowTagMessage(msgJson);
         } else if (Objects.equals(tags, MqConstants.TAG_UNFOLLOW)) {
             // TODO [YCcLin 2025/6/5]: 取关
+            handleUnfollowTagMessage(msgJson);
+        }
+    }
+
+    /**
+     * 取关
+     *
+     * @param msgJson
+     */
+    private void handleUnfollowTagMessage(String msgJson) {
+        UnfollowUserMqDTO mqDTO = JsonUtils.parseObject(msgJson, UnfollowUserMqDTO.class);
+        if (mqDTO == null) {
+            return;
+        }
+
+        Long userId = mqDTO.getUserId();
+        Long unfollowUserId = mqDTO.getUnfollowUserId();
+
+        Boolean isSuccess = transactionTemplate.execute(status -> {
+            try {
+                int count = followingDOMapper.deleteByUserIdAndFollowingUserId(userId, unfollowUserId);
+                if (count > 0) {
+                    fansDOMapper.deleteByUserIdAndFansUserId(userId, unfollowUserId);
+                }
+
+                return true;
+            } catch (Exception ex) {
+                status.setRollbackOnly();
+                log.error("", ex.getMessage(), ex);
+            }
+
+            return false;
+        });
+        
+        // 将自己从被取关用户的 ZSet 粉丝列表删除
+        if (Boolean.TRUE.equals(isSuccess)) {
+            String key = RedisKeyConstants.buildUserFansKey(unfollowUserId);
+            redisTemplate.opsForZSet().remove(key, userId);
         }
     }
 
@@ -102,8 +143,8 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
             return false;
         });
 
-        log.info("## 数据库添加记录结果: {}", isSuccess);    
-        // TODO [YCcLin 2025/6/5]: 更新 Redis 中被关注用户的 ZSet 粉丝列表
+        log.info("## 数据库添加记录结果: {}", isSuccess);
+        //  更新 Redis 中被关注用户的 ZSet 粉丝列表
         if (Boolean.TRUE.equals(isSuccess)) {
             DefaultRedisScript<Long> script = new DefaultRedisScript<>();
             script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/follow_check_and_update_fans_zset.lua")));

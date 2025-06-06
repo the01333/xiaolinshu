@@ -15,7 +15,9 @@ import com.puxinxiaolin.xiaolinshu.user.relation.biz.domain.mapper.FollowingDOMa
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.enums.LuaResultEnum;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.enums.ResponseCodeEnum;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.dto.FollowUserMqDTO;
+import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.dto.UnfollowUserMqDTO;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.FollowUserReqVO;
+import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.UnfollowUserReqVO;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.rpc.UserRpcService;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.service.RelationService;
 import jakarta.annotation.Resource;
@@ -86,7 +88,7 @@ public class RelationServiceImpl implements RelationService {
         // 写入 ZSET
         if (Objects.equals(result, LuaResultEnum.ZSET_NOT_EXIST.getCode())) {
             List<FollowingDO> followingDOList = followingDOMapper.selectByUserId(currentUserId);
-            // 保底1天+随机秒数
+            // 保底1天 + 随机秒数
             long expireSeconds = 60 * 60 * 24 + RandomUtil.randomInt(60 * 60 * 24);
 
             // 若 DB 记录为空, 直接把当前这次关注的关系数据加入 ZSET 中
@@ -97,7 +99,7 @@ public class RelationServiceImpl implements RelationService {
 
                 // TODO [YCcLin 2025/6/4]: 可以根据用户类型, 设置不同的过期时间 ->
                 //  若当前用户为大V, 则可以过期时间设置的长些或者不设置过期时间; 如不是, 则设置的短些
-                // 如何判断呢？可以从计数服务获取用户的粉丝数, 目前计数服务还没创建, 则暂时采用统一的过期策略
+                // 可以从计数服务获取用户的粉丝数, 目前计数服务还没创建, 则暂时采用统一的过期策略
                 redisTemplate.execute(script2, Collections.singletonList(key), followUserId, nowTimestamp, expireSeconds);
             } else {
                 // 刷新 DB 记录到 ZSET 中
@@ -113,7 +115,7 @@ public class RelationServiceImpl implements RelationService {
                 checkLuaScriptResult(result);
             }
         }
-
+    
         // 走 MQ
         FollowUserMqDTO mqDTO = FollowUserMqDTO.builder()
                 .userId(currentUserId)
@@ -126,7 +128,8 @@ public class RelationServiceImpl implements RelationService {
         
         log.info("==> 开始发送关注操作 MQ, 消息体: {}", mqDTO);
         
-        rocketMQTemplate.asyncSend(destination, message, new SendCallback() {
+        String hashKey = String.valueOf(currentUserId);
+        rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
                 log.info("==> MQ 发送成功，SendResult: {}", sendResult);
@@ -138,6 +141,89 @@ public class RelationServiceImpl implements RelationService {
             }
         });
 
+        return Response.success();
+    }
+
+    /**
+     * 取关用户
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> unfollow(UnfollowUserReqVO request) {
+        Long unfollowUserId = request.getUnfollowUserId();
+        Long currentUserId = LoginUserContextHolder.getUserId();
+        if (Objects.equals(unfollowUserId, currentUserId)) {
+            throw new BizException(ResponseCodeEnum.CANT_UNFOLLOW_YOUR_SELF);
+        }
+
+        // 取关的用户是否存在
+        FindUserByIdRspDTO findUserByIdRspDTO = userRpcService.findById(unfollowUserId);
+        if (findUserByIdRspDTO == null) {
+            throw new BizException(ResponseCodeEnum.FOLLOW_USER_NOT_EXISTED);
+        }
+        
+        // 必须关注才能取关
+        String key = RedisKeyConstants.buildUserFollowingKey(currentUserId);
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/unfollow_check_and_delete.lua")));
+        script.setResultType(Long.class);
+
+        Long result = redisTemplate.execute(script, Collections.singletonList(key), unfollowUserId);
+        if (Objects.equals(result, LuaResultEnum.NOT_FOLLOWED.getCode())) {
+            throw new BizException(ResponseCodeEnum.NOT_FOLLOWED);
+        }
+        if (Objects.equals(result, LuaResultEnum.ZSET_NOT_EXIST.getCode())) {
+            // 批量同步
+            int expireSeconds = 60 * 60 * 24 + RandomUtil.randomInt(60 * 60 * 24);
+            
+            List<FollowingDO> followingDOList = followingDOMapper.selectByUserId(currentUserId);
+            if (CollUtil.isEmpty(followingDOList)) {
+                throw new BizException(ResponseCodeEnum.NOT_FOLLOWED);
+            } else {
+                Object[] luaArgs = buildLuaArgs(followingDOList, expireSeconds);
+
+                DefaultRedisScript<Long> script2 = new DefaultRedisScript<>();
+                script2.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/follow_batch_add_and_expire.lua")));
+                script2.setResultType(Long.class);
+                
+                redisTemplate.execute(script2, Collections.singletonList(key), luaArgs);
+                
+                // 清除旧数据: 把要取关的用户关系数据删除
+                result = redisTemplate.execute(script, Collections.singletonList(key), unfollowUserId);
+                if (Objects.equals(result, LuaResultEnum.NOT_FOLLOWED.getCode())) {
+                    throw new BizException(ResponseCodeEnum.NOT_FOLLOWED);
+                }
+            }
+        }
+        
+        // 走 MQ
+        UnfollowUserMqDTO mqDTO = UnfollowUserMqDTO.builder()
+                .userId(currentUserId)
+                .unfollowUserId(unfollowUserId)
+                .createTime(LocalDateTime.now())
+                .build();
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
+                .build();
+        String destination = MqConstants.TOPIC_FOLLOW_OR_UNFOLLOW + ":" + MqConstants.TAG_UNFOLLOW;
+
+        log.info("==> 开始发送取关操作 MQ, 消息体: {}", mqDTO);
+
+        String hashKey = String.valueOf(currentUserId);
+        rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable ex) {
+                log.error("==> MQ 发送异常: ", ex);
+            }
+        });
+        
         return Response.success();
     }
 
