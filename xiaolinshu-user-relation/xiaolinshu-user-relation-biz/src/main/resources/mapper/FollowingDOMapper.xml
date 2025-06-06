@@ -7,9 +7,11 @@
         <result column="following_user_id" jdbcType="BIGINT" property="followingUserId"/>
         <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
     </resultMap>
+    
     <sql id="Base_Column_List">
         id, user_id, following_user_id, create_time
     </sql>
+    
     <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -96,4 +98,25 @@
         where user_id = #{userId}
           and following_user_id = #{unfollowUserId}
     </delete>
+
+    <select id="selectCountByUserId" resultType="long" parameterType="long">
+        select count(1)
+        from t_following
+        where user_id = #{userId}
+    </select>
+
+    <select id="selectPageListByUserId" resultMap="BaseResultMap" parameterType="map">
+        select *
+        from t_following
+        where id = #{id}
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="selectAllByUserId" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select following_user_id, create_time
+        from t_following
+        where user_id = #{userId}
+        limit 1000
+    </select>
 </mapper>

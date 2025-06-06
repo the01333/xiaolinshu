@@ -1,3 +1,4 @@
+-- 批量插入数据
 local key = KEYS[1]
 
 local zaddArgs = {}

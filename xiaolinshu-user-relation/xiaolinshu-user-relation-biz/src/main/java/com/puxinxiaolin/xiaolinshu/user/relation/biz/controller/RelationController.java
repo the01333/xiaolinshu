@@ -1,7 +1,10 @@
 package com.puxinxiaolin.xiaolinshu.user.relation.biz.controller;
 
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
+import com.puxinxiaolin.framework.common.response.PageResponse;
 import com.puxinxiaolin.framework.common.response.Response;
+import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.FindFollowingListReqVO;
+import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.FindFollowingUserRspVO;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.FollowUserReqVO;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.UnfollowUserReqVO;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.service.RelationService;
@@ -29,6 +32,12 @@ public class RelationController {
     @ApiOperationLog(description = "取关用户")
     public Response<?> unfollow(@Validated @RequestBody UnfollowUserReqVO request) {
         return relationService.unfollow(request);
+    }
+
+    @PostMapping("/following/list")
+    @ApiOperationLog(description = "查询用户关注列表")
+    public PageResponse<FindFollowingUserRspVO> findFollowingList(@Validated @RequestBody FindFollowingListReqVO request) {
+        return relationService.findFollowingList(request);
     }
 
 }

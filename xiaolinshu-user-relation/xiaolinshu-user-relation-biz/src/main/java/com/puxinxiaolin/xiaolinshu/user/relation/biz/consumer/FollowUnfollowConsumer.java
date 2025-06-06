@@ -61,7 +61,7 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
         if (Objects.equals(tags, MqConstants.TAG_FOLLOW)) {
             handleFollowTagMessage(msgJson);
         } else if (Objects.equals(tags, MqConstants.TAG_UNFOLLOW)) {
-            // TODO [YCcLin 2025/6/5]: 取关
+            // 取关
             handleUnfollowTagMessage(msgJson);
         }
     }
