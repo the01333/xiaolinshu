@@ -2,10 +2,7 @@ package com.puxinxiaolin.xiaolinshu.user.biz.controller;
 
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.Response;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.FindUserByIdReqDTO;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.FindUserByPhoneReqDTO;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.RegisterUserReqDTO;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.req.*;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByIdRspDTO;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByPhoneRspDTO;
 import com.puxinxiaolin.xiaolinshu.user.biz.model.vo.UpdateUserInfoReqVO;
@@ -18,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -60,6 +59,12 @@ public class UserController {
     @ApiOperationLog(description = "查询用户信息")
     public Response<FindUserByIdRspDTO> findById(@Validated @RequestBody FindUserByIdReqDTO request) {
         return userService.findById(request);
+    }
+
+    @PostMapping("/findByIds")
+    @ApiOperationLog(description = "批量查询用户信息")
+    public Response<List<FindUserByIdRspDTO>> findByIds(@Validated @RequestBody FindUsersByIdsReqDTO request) {
+        return userService.findByIds(request);
     }
     
 }

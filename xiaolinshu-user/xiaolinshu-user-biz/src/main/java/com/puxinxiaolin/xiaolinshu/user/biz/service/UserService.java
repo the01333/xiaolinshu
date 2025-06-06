@@ -1,13 +1,12 @@
 package com.puxinxiaolin.xiaolinshu.user.biz.service;
 
 import com.puxinxiaolin.framework.common.response.Response;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.FindUserByIdReqDTO;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.FindUserByPhoneReqDTO;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.RegisterUserReqDTO;
-import com.puxinxiaolin.xiaolinshu.user.api.dto.req.UpdateUserPasswordReqDTO;
+import com.puxinxiaolin.xiaolinshu.user.api.dto.req.*;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByIdRspDTO;
 import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByPhoneRspDTO;
 import com.puxinxiaolin.xiaolinshu.user.biz.model.vo.UpdateUserInfoReqVO;
+
+import java.util.List;
 
 public interface UserService {
 
@@ -50,5 +49,13 @@ public interface UserService {
      * @return
      */
     Response<FindUserByIdRspDTO> findById(FindUserByIdReqDTO request);
-    
+
+    /**
+     * 批量查询用户信息
+     *
+     * @param request
+     * @return
+     */
+    Response<List<FindUserByIdRspDTO>> findByIds(FindUsersByIdsReqDTO request);
+
 }
