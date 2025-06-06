@@ -395,4 +395,5 @@ public class RelationServiceImpl implements RelationService {
             case ALREADY_FOLLOWED -> throw new BizException(ResponseCodeEnum.ALREADY_FOLLOWED);
         }
     }
+    
 }

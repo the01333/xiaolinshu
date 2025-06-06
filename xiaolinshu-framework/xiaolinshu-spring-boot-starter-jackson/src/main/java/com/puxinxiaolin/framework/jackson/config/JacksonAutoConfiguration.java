@@ -35,7 +35,7 @@ public class JacksonAutoConfiguration {
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        // 设置凡是为 null 的字段，返参中均不返回，请根据项目组约定是否开启
+        // 设置凡是为 null 的字段，返参中均不返回，根据项目组约定是否开启
 //        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         objectMapper.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));

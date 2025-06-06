@@ -1,4 +1,4 @@
--- LUA 脚本：校验并添加关注关系
+-- LUA 脚本: 校验并添加关注关系
 
 local key = KEYS[1] -- 操作的 Redis Key
 local followUserId = ARGV[1] -- 关注的用户ID
