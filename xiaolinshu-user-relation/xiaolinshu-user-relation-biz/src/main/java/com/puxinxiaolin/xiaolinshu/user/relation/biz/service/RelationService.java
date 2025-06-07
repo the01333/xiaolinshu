@@ -2,10 +2,7 @@ package com.puxinxiaolin.xiaolinshu.user.relation.biz.service;
 
 import com.puxinxiaolin.framework.common.response.PageResponse;
 import com.puxinxiaolin.framework.common.response.Response;
-import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.FindFollowingListReqVO;
-import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.FindFollowingUserRspVO;
-import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.FollowUserReqVO;
-import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.UnfollowUserReqVO;
+import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.vo.*;
 
 public interface RelationService {
 
@@ -32,5 +29,13 @@ public interface RelationService {
      * @return
      */
     PageResponse<FindFollowingUserRspVO> findFollowingList(FindFollowingListReqVO request);
+
+    /**
+     * 查询用户粉丝列表
+     *
+     * @param request
+     * @return
+     */
+    PageResponse<FindFansUserRspVO> findFansList(FindFansListReqVO request);
 
 }

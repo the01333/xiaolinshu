@@ -41,7 +41,7 @@ spring:
         - id: user-relation
           uri: lb://xiaolinshu-user-relation
           predicates:
-            - Path=/note/**
+            - Path=/relation/**
           filters:
             - StripPrefix=1
 

@@ -84,7 +84,7 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
             try {
                 int count = followingDOMapper.deleteByUserIdAndFollowingUserId(userId, unfollowUserId);
                 if (count > 0) {
-                    fansDOMapper.deleteByUserIdAndFansUserId(userId, unfollowUserId);
+                    fansDOMapper.deleteByUserIdAndFansUserId(unfollowUserId, userId);
                 }
 
                 return true;
