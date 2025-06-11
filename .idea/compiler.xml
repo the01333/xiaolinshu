@@ -13,10 +13,9 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../../../../../../maven/apache-maven-3.6.3/maven_repo/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-          <entry name="$PROJECT_DIR$/../../../../../../maven/apache-maven-3.6.3/maven_repo/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
-        <module name="xiaolinshu-count-biz" />
         <module name="xiaolinshu-note-api" />
+        <module name="xiaolinshu-count-biz" />
         <module name="xiaolinshu-gateway" />
         <module name="xiaolinshu-distributed-id-generator-api" />
         <module name="xiaolinshu-note-biz" />

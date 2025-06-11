@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/xiaolinshu?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/xiaolinshu?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     password: XDbYGgaZ9yA0EqPnxEzamMXVhWajvwtHhheZEWu/NnEA9+QnuIp+wrC4/NBdYphoc2+XrGk2FU4kd1lOEOCruQ==
     username: root
     type: com.alibaba.druid.pool.DruidDataSource

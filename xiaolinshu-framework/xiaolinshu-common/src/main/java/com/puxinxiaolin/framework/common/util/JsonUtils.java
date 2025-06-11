@@ -1,13 +1,38 @@
 package com.puxinxiaolin.framework.common.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Map;
+
 public class JsonUtils {
 
     private static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    
+
+    /**
+     * 将 JSON 字符串转换为 Map
+     *
+     * @param jsonStr
+     * @param keyClass
+     * @param valueClass
+     * @param <K>
+     * @param <V>
+     * @return
+     */
+    public static <K, V> Map<K, V> parseMap(String jsonStr, Class<K> keyClass, Class<V> valueClass) throws JsonProcessingException {
+        TypeReference<Map<K, V>> typeRef = new TypeReference<>() {
+        };
+
+        return OBJECT_MAPPER.readValue(
+                jsonStr,
+                OBJECT_MAPPER.getTypeFactory()
+                        .constructMapType(Map.class, keyClass, valueClass)
+        );
+    }
+
     /**
      * 将对象转换为 JSON 字符串
      *
@@ -35,7 +60,6 @@ public class JsonUtils {
 
         return OBJECT_MAPPER.readValue(jsonStr, clazz);
     }
-
 
     /**
      * 初始化：统一使用 Spring Boot 个性化配置的 ObjectMapper
