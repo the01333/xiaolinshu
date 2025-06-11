@@ -31,7 +31,7 @@ import java.util.Objects;
 @Slf4j
 @Component
 @RocketMQMessageListener(
-        consumerGroup = "xiaolinshu_group",
+        consumerGroup = "xiaolinshu_group_" + MqConstants.TOPIC_FOLLOW_OR_UNFOLLOW,
         topic = MqConstants.TOPIC_FOLLOW_OR_UNFOLLOW,
         consumeMode = ConsumeMode.ORDERLY
 )
@@ -90,7 +90,7 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
                 return true;
             } catch (Exception ex) {
                 status.setRollbackOnly();
-                log.error("", ex.getMessage(), ex);
+                log.error("{}", ex.getMessage(), ex);
             }
 
             return false;
@@ -137,7 +137,7 @@ public class FollowUnfollowConsumer implements RocketMQListener<Message> {
                 return true;
             } catch (Exception e) {
                 status.setRollbackOnly();   // 标记事务为回滚
-                log.error("", e.getMessage(), e);
+                log.error("{}", e.getMessage(), e);
             }
 
             return false;

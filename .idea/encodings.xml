@@ -5,6 +5,12 @@
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-auth/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-auth/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-count/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-count/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-count/xiaolinshu-count-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-count/xiaolinshu-count-api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-count/xiaolinshu-count-biz/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-count/xiaolinshu-count-biz/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-distributed-id-generator/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-distributed-id-generator/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-distributed-id-generator/xiaolinshu-distributed-id-generator-api/src/main/java" charset="UTF-8" />

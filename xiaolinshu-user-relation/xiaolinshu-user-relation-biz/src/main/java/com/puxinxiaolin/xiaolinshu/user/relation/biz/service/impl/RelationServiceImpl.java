@@ -2,7 +2,6 @@ package com.puxinxiaolin.xiaolinshu.user.relation.biz.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
-import com.google.common.collect.Lists;
 import com.puxinxiaolin.framework.biz.context.holder.LoginUserContextHolder;
 import com.puxinxiaolin.framework.common.exception.BizException;
 import com.puxinxiaolin.framework.common.response.PageResponse;
@@ -78,7 +77,7 @@ public class RelationServiceImpl implements RelationService {
         if (findUserByIdRspDTO == null) {
             throw new BizException(ResponseCodeEnum.FOLLOW_USER_NOT_EXISTED);
         }
-
+        
         // 关注数是否已达上限
         // 用 lua 脚本校验并添加关注关系
         String key = RedisKeyConstants.buildUserFollowingKey(currentUserId);
