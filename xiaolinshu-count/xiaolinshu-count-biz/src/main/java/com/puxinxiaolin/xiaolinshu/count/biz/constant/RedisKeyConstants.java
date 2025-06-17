@@ -2,6 +2,9 @@ package com.puxinxiaolin.xiaolinshu.count.biz.constant;
 
 public class RedisKeyConstants {
 
+    // Hash Field: 关注总数
+    public static final String FIELD_FOLLOWING_TOTAL = "followingTotal";
+    
     // 用户维度计数 Key 前缀
     private static final String COUNT_USER_KEY_PREFIX = "count:user:";
 

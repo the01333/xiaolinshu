@@ -2,7 +2,17 @@
 docker run -p 6379:6379 --name redis --restart=always \
 --memory="512m" \
 -v /soft/docker/redis/conf/redis.conf:/etc/redis/redis.conf \
--v /soft/docker/redis/data:/data -d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
+-v /soft/docker/redis/data:/data \
+-d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
+
+# 下面这个引入了布隆过滤器, 仓库地址: https://github.com/RedisBloom/RedisBloom
+# 下载: https://github.com/RedisBloom/RedisBloom/archive/refs/tags/v2.2.18.tar.gz
+docker run -p 6379:6379 --name redis --restart=always \
+--memory="512m" \
+-v /soft/docker/redis/conf/redis.conf:/etc/redis/redis.conf \
+-v /soft/docker/redis/data:/data \
+-v /soft/docker/redis/modules:/etc/redis/modules \
+-d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
 
 2. nacos
 docker run -d --name nacos --privileged -e MODE=standalone --restart=always \

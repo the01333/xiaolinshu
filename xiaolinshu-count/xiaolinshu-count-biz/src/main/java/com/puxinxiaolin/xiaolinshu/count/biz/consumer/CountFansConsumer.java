@@ -50,7 +50,9 @@ public class CountFansConsumer implements RocketMQListener<String> {
     }
 
     /**
-     * 根据聚合结果消费消息
+     * 根据聚合结果消费消息:
+     * 这里是要对一个用户的粉丝数做聚合, 因为可能有很多用户同时关注或者取关该用户,
+     * 所以可以用 BufferTrigger 的流量聚合来优化
      *
      * @param messages
      */
@@ -107,7 +109,7 @@ public class CountFansConsumer implements RocketMQListener<String> {
          */
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(countMap))
                 .build();
-        
+
         rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_FANS_2_DB, message, new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
