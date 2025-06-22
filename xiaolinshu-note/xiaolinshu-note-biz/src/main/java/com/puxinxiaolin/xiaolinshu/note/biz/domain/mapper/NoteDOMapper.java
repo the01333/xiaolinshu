@@ -4,6 +4,8 @@ import com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteDO;
 
 public interface NoteDOMapper {
 
+    int selectCountByNoteId(Long id);
+    
     int updateIsTop(NoteDO noteDO);
 
     int updateVisibleOnlyMe(NoteDO noteDO);

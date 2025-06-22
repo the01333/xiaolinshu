@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.puxinxiaolin.xiaolinshu.count.biz.domain.mapper.NoteCollectionDOMapper">
-    <resultMap id="BaseResultMap" type="com.puxinxiaolin.xiaolinshu.count.biz.domain.dataobject.NoteCollectionDO">
+<mapper namespace="com.puxinxiaolin.xiaolinshu.note.biz.domain.mapper.NoteLikeDOMapper">
+    <resultMap id="BaseResultMap" type="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
         <id column="id" jdbcType="BIGINT" property="id"/>
         <result column="user_id" jdbcType="BIGINT" property="userId"/>
         <result column="note_id" jdbcType="BIGINT" property="noteId"/>
@@ -14,23 +14,22 @@
     <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_note_collection
+        from t_note_like
         where id = #{id,jdbcType=BIGINT}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
         delete
-        from t_note_collection
+        from t_note_like
         where id = #{id,jdbcType=BIGINT}
     </delete>
-    <insert id="insert" parameterType="com.puxinxiaolin.xiaolinshu.count.biz.domain.dataobject.NoteCollectionDO">
-        insert into t_note_collection (id, user_id, note_id,
-                                       create_time, `status`)
+    <insert id="insert" parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
+        insert into t_note_like (id, user_id, note_id,
+                                 create_time, `status`)
         values (#{id,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{noteId,jdbcType=BIGINT},
                 #{createTime,jdbcType=TIMESTAMP}, #{status,jdbcType=TINYINT})
     </insert>
-    <insert id="insertSelective"
-            parameterType="com.puxinxiaolin.xiaolinshu.count.biz.domain.dataobject.NoteCollectionDO">
-        insert into t_note_collection
+    <insert id="insertSelective" parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
+        insert into t_note_like
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -67,8 +66,8 @@
         </trim>
     </insert>
     <update id="updateByPrimaryKeySelective"
-            parameterType="com.puxinxiaolin.xiaolinshu.count.biz.domain.dataobject.NoteCollectionDO">
-        update t_note_collection
+            parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
+        update t_note_like
         <set>
             <if test="userId != null">
                 user_id = #{userId,jdbcType=BIGINT},
@@ -85,13 +84,53 @@
         </set>
         where id = #{id,jdbcType=BIGINT}
     </update>
-    <update id="updateByPrimaryKey"
-            parameterType="com.puxinxiaolin.xiaolinshu.count.biz.domain.dataobject.NoteCollectionDO">
-        update t_note_collection
+    <update id="updateByPrimaryKey" parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
+        update t_note_like
         set user_id     = #{userId,jdbcType=BIGINT},
             note_id     = #{noteId,jdbcType=BIGINT},
             create_time = #{createTime,jdbcType=TIMESTAMP},
             `status`    = #{status,jdbcType=TINYINT}
         where id = #{id,jdbcType=BIGINT}
     </update>
+
+    <select id="selectCountByUserIdAndNoteId" resultType="int" parameterType="map">
+        select count(1)
+        from t_note_like
+        where user_id = #{userId}
+          and note_id = #{noteId}
+          and status = 1
+        limit 1
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        select note_id
+        from t_note_like
+        where user_id = #{userId}
+          and status = 1
+    </select>
+
+    <select id="selectNoteIsLiked" resultType="int" parameterType="map">
+        select count(1)
+        from t_note_like
+        where user_id = #{userId}
+          and note_id = #{noteId}
+          and status = 1
+        limit 1
+    </select>
+  
+    <select id="selectLikedByUserIdAndLimit" resultMap="BaseResultMap" parameterType="map">
+        select *
+        from t_note_like
+        where user_id = #{userId}
+          and status = 1
+        order by create_time desc
+        limit #{limit}
+    </select>
+    
+    <insert id="insertOrUpdate" parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
+        insert into t_note_like(user_id, note_id, create_time, status)
+        values (#{userId}, #{noteId}, #{createTime}, #{status})
+        on duplicate key update create_time = #{createTime},
+                                status      = #{status}
+    </insert>
 </mapper>

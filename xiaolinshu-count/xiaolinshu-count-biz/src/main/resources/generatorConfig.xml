@@ -45,30 +45,18 @@
         <javaClientGenerator type="XMLMAPPER" targetPackage="com.puxinxiaolin.xiaolinshu.count.biz.domain.mapper"
                              targetProject="src/main/java"/>
         
-        <table tableName="t_note_like" domainObjectName="NoteLikeDO"
+        <table tableName="t_note_count" domainObjectName="NoteCountDO"
                enableCountByExample="false"
                enableUpdateByExample="false"
                enableDeleteByExample="false"
                enableSelectByExample="false"
                selectByExampleQueryId="false"/>
-        <table tableName="t_note_collection" domainObjectName="NoteCollectionDO"
+        <table tableName="t_user_count" domainObjectName="UserCountDO"
                enableCountByExample="false"
                enableUpdateByExample="false"
                enableDeleteByExample="false"
                enableSelectByExample="false"
                selectByExampleQueryId="false"/>
-<!--        <table tableName="t_note_count" domainObjectName="NoteCountDO"-->
-<!--               enableCountByExample="false"-->
-<!--               enableUpdateByExample="false"-->
-<!--               enableDeleteByExample="false"-->
-<!--               enableSelectByExample="false"-->
-<!--               selectByExampleQueryId="false"/>-->
-<!--        <table tableName="t_user_count" domainObjectName="UserCountDO"-->
-<!--               enableCountByExample="false"-->
-<!--               enableUpdateByExample="false"-->
-<!--               enableDeleteByExample="false"-->
-<!--               enableSelectByExample="false"-->
-<!--               selectByExampleQueryId="false"/>-->
     </context>
     
 </generatorConfiguration>

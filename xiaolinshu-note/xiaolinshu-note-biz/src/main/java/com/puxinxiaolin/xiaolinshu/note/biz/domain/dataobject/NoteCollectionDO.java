@@ -1,11 +1,11 @@
-package com.puxinxiaolin.xiaolinshu.count.biz.domain.dataobject;
+package com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -19,8 +19,8 @@ public class NoteCollectionDO {
 
     private Long noteId;
 
-    private Date createTime;
+    private LocalDateTime createTime;
 
-    private Byte status;
+    private int status;
 
 }

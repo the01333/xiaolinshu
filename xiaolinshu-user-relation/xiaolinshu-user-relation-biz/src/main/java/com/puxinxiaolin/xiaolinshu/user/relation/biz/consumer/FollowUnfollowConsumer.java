@@ -13,6 +13,7 @@ import com.puxinxiaolin.xiaolinshu.user.relation.biz.enums.FollowUnfollowTypeEnu
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.dto.CountFollowUnfollowMqDTO;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.dto.FollowUserMqDTO;
 import com.puxinxiaolin.xiaolinshu.user.relation.biz.model.dto.UnfollowUserMqDTO;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.SendCallback;
