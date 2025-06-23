@@ -545,13 +545,13 @@ public class NoteServiceImpl implements NoteService {
                     // 异步初始化布隆过滤器
                     threadPoolTaskExecutor.submit(() ->
                             batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey));
-                    
+
                     throw new BizException(ResponseCodeEnum.NOTE_ALREADY_LIKED);
                 }
 
                 // 若目标笔记未被点赞, 查询当前用户是否有点赞其他笔记, 有则同步初始化布隆过滤器
                 batchAddNoteLike2BloomAndExpire(userId, expireSeconds, bloomUserNoteLikeListKey);
-                
+
                 script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_add_note_like_and_expire.lua")));
                 script.setResultType(Long.class);
 
@@ -618,6 +618,7 @@ public class NoteServiceImpl implements NoteService {
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
                 .build();
         String destination = MQConstants.TOPIC_LIKE_OR_UNLIKE + ":" + MQConstants.TAG_LIKE;
+        // 顺序消息需要用 hashKey 去选择队列
         String hashKey = String.valueOf(userId);
 
         rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
@@ -629,6 +630,80 @@ public class NoteServiceImpl implements NoteService {
             @Override
             public void onException(Throwable throwable) {
                 log.error("==> 【笔记点赞】MQ 发送异常: {}", throwable.getMessage(), throwable);
+            }
+        });
+
+        return Response.success();
+    }
+
+    /**
+     * 取消点赞笔记
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> unlikeNote(UnlikeNoteReqVO request) {
+
+        Long noteId = request.getId();
+
+        // 1. 判断笔记是否存在
+        checkNoteIsExist(noteId);
+        
+        // 2. 判断是否点赞过笔记
+        Long userId = LoginUserContextHolder.getUserId();
+        String bloomUserNoteLikeListKey = RedisKeyConstants.buildBloomUserNoteLikeListKey(userId);
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_note_unlike_check.lua")));
+        script.setResultType(Long.class);
+
+        Long result = redisTemplate.execute(script, Collections.singletonList(bloomUserNoteLikeListKey), noteId);
+        NoteUnlikeLuaResultEnum resultEnum = NoteUnlikeLuaResultEnum.valueOf(result);
+        switch (resultEnum) {
+            case NOT_EXIST -> {
+                threadPoolTaskExecutor.submit(() -> {
+                    long expireSeconds = 60 * 60 * 24 + RandomUtil.randomInt(60 * 60 * 24);
+                    
+                    batchAddNoteLike2BloomAndExpire(noteId, expireSeconds, bloomUserNoteLikeListKey);
+                });
+
+                int count = noteLikeDOMapper.selectCountByUserIdAndNoteId(userId, noteId);
+                if (count == 0) {
+                    throw new BizException(ResponseCodeEnum.NOTE_NOT_LIKED);
+                }
+            }
+            case NOTE_NOT_LIKED -> throw new BizException(ResponseCodeEnum.NOTE_NOT_LIKED);
+        }
+
+        // 3. 删除 zset 中已点赞的笔记 ID
+        // 能走到这里, 说明布隆过滤器判断已点赞, 直接删除 ZSET 中已点赞的笔记 ID
+        String userNoteLikeZSetKey = RedisKeyConstants.buildUserNoteLikeZSetKey(userId);
+        redisTemplate.opsForZSet().remove(userNoteLikeZSetKey, noteId);
+
+        // 4. 走 MQ, 入库
+        LikeUnLikeNoteMqDTO mqDTO = LikeUnLikeNoteMqDTO.builder()
+                .noteId(noteId)
+                .userId(userId)
+                .type(LikeUnlikeNoteTypeEnum.UNLIKE.getCode())
+                .createTime(LocalDateTime.now())
+                .build();
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
+                .build();
+        
+        String destination = MQConstants.TOPIC_LIKE_OR_UNLIKE + ":" + MQConstants.TAG_UNLIKE;
+        // 顺序消息需要用 hashKey 去选择队列
+        String hashKey = String.valueOf(userId);
+        
+        rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【笔记取消点赞】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【笔记取消点赞】MQ 发送异常: ", throwable);
             }
         });
 

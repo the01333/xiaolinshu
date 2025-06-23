@@ -1,4 +1,4 @@
-package com.puxinxiaolin.xiaolinshu.note.biz.enums;
+package com.puxinxiaolin.xiaolinshu.count.biz.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -86,7 +86,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
@@ -95,6 +94,12 @@
         <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- 快手 Buffer Trigger: 对大数据量进行聚合写 -->
+        <dependency>
+            <groupId>com.github.phantomthief</groupId>
+            <artifactId>buffer-trigger</artifactId>
         </dependency>
     </dependencies>
 

@@ -2,6 +2,12 @@ package com.puxinxiaolin.xiaolinshu.count.biz.constant;
 
 public interface MQConstants {
 
+    // Topic: 计数 - 笔记点赞数落库
+    String TOPIC_COUNT_NOTE_LIKE_2_DB = "CountNoteLike2DBTopic";
+    
+    // Topic: 计数 - 笔记点赞数
+    String TOPIC_COUNT_NOTE_LIKE = "CountNoteLikeTopic";
+    
     // Topic: 关注数计数入库
     String TOPIC_COUNT_FOLLOWING_2_DB = "CountFollowing2DBTopic";
     

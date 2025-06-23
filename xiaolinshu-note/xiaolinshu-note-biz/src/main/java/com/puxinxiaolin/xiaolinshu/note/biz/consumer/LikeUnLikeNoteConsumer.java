@@ -8,10 +8,14 @@ import com.puxinxiaolin.xiaolinshu.note.biz.domain.mapper.NoteLikeDOMapper;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.dto.LikeUnLikeNoteMqDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -27,6 +31,8 @@ import java.util.Objects;
 public class LikeUnLikeNoteConsumer implements RocketMQListener<Message> {
     @Resource
     private NoteLikeDOMapper noteLikeDOMapper;
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
     @Resource
     private RateLimiter rateLimiter;
 
@@ -55,7 +61,42 @@ public class LikeUnLikeNoteConsumer implements RocketMQListener<Message> {
      * @param bodyJson
      */
     private void handleUnlikeTagMessage(String bodyJson) {
+        LikeUnLikeNoteMqDTO mqDTO = JsonUtils.parseObject(bodyJson, LikeUnLikeNoteMqDTO.class);
+        if (mqDTO == null) {
+            return;
+        }
 
+        Long userId = mqDTO.getUserId();
+        Long noteId = mqDTO.getNoteId();
+        Integer type = mqDTO.getType();
+        LocalDateTime createTime = mqDTO.getCreateTime();
+        NoteLikeDO noteLikeDO = NoteLikeDO.builder()
+                .userId(userId)
+                .noteId(noteId)
+                .status(type)
+                .createTime(createTime)
+                .build();
+
+        int count = noteLikeDOMapper.update2UnlikeByUserIdAndNoteId(noteLikeDO);
+        if (count == 0) {
+            return;
+        }
+        
+        // 发送计数 MQ
+        org.springframework.messaging.Message<String> message = MessageBuilder.withPayload(bodyJson)
+                .build();
+        
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_LIKE, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【计数: 笔记取消点赞】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【计数: 笔记取消点赞】MQ 发送异常: ", throwable);
+            }
+        });
     }
 
     /**
@@ -81,8 +122,25 @@ public class LikeUnLikeNoteConsumer implements RocketMQListener<Message> {
                 .build();
 
         int count = noteLikeDOMapper.insertOrUpdate(noteLikeDO);
+        if (count == 0) {
+            return;
+        }
 
-        // TODO [YCcLin 2025/6/22]: 发送计数 MQ
+        // 发送计数 MQ
+        org.springframework.messaging.Message<String> message = MessageBuilder.withPayload(bodyJson)
+                .build();
+
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_LIKE, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【计数: 笔记点赞】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【计数: 笔记点赞】MQ 发送异常: ", throwable);
+            }
+        });
     }
 
 }

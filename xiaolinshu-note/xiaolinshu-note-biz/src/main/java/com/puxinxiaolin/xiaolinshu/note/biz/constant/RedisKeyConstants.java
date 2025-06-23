@@ -1,7 +1,7 @@
 package com.puxinxiaolin.xiaolinshu.note.biz.constant;
 
 public class RedisKeyConstants {
-
+    
     // 用户笔记点赞列表 ZSet 前缀
     public static final String USER_NOTE_LIKE_ZSET_KEY = "user:note:likes:";
     

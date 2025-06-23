@@ -1,6 +1,9 @@
 package com.puxinxiaolin.xiaolinshu.note.biz.constant;
 
 public interface MQConstants {
+
+    // Topic: 计数 - 笔记点赞数
+    String TOPIC_COUNT_NOTE_LIKE = "CountNoteLikeTopic";
     
     // Topic 主题: 笔记点赞、取消点赞
     String TOPIC_LIKE_OR_UNLIKE = "LikeUnlikeTopic";

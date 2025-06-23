@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface NoteLikeDOMapper {
+
+    int update2UnlikeByUserIdAndNoteId(NoteLikeDO noteLikeDO);
     
     int insertOrUpdate(NoteLikeDO noteLikeDO);
     
