@@ -30,6 +30,7 @@ public class HeaderUserId2ContextFilter extends OncePerRequestFilter {
         try {
             filterChain.doFilter(request, response);
         } finally {
+            // 手动 remove, 避免内存泄漏
             LoginUserContextHolder.remove();
             log.info("===== 删除 ThreadLocal, userId: {}", userId);
         }

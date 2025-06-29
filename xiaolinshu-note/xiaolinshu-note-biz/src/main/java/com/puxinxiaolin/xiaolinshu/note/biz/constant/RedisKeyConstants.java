@@ -1,13 +1,19 @@
 package com.puxinxiaolin.xiaolinshu.note.biz.constant;
 
 public class RedisKeyConstants {
+
+    // 用户笔记收藏列表 ZSet 前缀
+    public static final String USER_NOTE_COLLECT_ZSEY_KEY = "user:note:collects:";
+    
+    // 布隆过滤器: 用户笔记收藏前缀
+    public static final String USER_USER_NOTE_COLLECT_LIST_KEY = "user:note:likes:";
     
     // 用户笔记点赞列表 ZSet 前缀
     public static final String USER_NOTE_LIKE_ZSET_KEY = "user:note:likes:";
     
     // 布隆过滤器: 用户笔记点赞
     public static final String BLOOM_USER_NOTE_LIKE_LIST_KEY = "bloom:note:likes:";
-
+    
     public static final String NOTE_DETAIL_KEY = "note:detail:";
 
     public static String buildNoteDetailKey(Long noteId) {
@@ -21,6 +27,14 @@ public class RedisKeyConstants {
     public static String buildUserNoteLikeZSetKey(Long userId) {
         return USER_NOTE_LIKE_ZSET_KEY + userId;
     }
-
+    
+    public static String buildBloomUserNoteCollectListKey(Long userId) {
+        return USER_USER_NOTE_COLLECT_LIST_KEY + userId;
+    }
+    
+    public static String buildUserNoteCollectZSetKey(Long userId) {
+        return USER_NOTE_COLLECT_ZSEY_KEY + userId;
+    }
+    
 }
 
