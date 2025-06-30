@@ -233,4 +233,11 @@
         where id = #{id}
           and `status` = 1
     </select>
+    
+    <select id="selectCreatorIdByNoteId" resultType="java.lang.Long">
+        select creator_id
+        from t_note
+        where id = #{noteId}
+          and `status` = 1
+    </select>
 </mapper>

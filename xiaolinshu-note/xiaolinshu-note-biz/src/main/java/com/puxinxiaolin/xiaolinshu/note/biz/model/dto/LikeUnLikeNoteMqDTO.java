@@ -22,4 +22,6 @@ public class LikeUnLikeNoteMqDTO {
     
     private LocalDateTime createTime;
     
+    private Long noteCreatorId;
+    
 }

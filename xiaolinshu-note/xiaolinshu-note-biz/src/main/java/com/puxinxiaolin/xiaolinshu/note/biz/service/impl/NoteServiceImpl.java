@@ -529,7 +529,7 @@ public class NoteServiceImpl implements NoteService {
         Long noteId = request.getId();
 
         // 判断笔记是否存在
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExist(noteId);
 
         // 判断笔记是否已点赞过
         Long userId = LoginUserContextHolder.getUserId();
@@ -620,6 +620,7 @@ public class NoteServiceImpl implements NoteService {
                 .noteId(noteId)
                 .type(LikeUnlikeNoteTypeEnum.LIKE.getCode())
                 .createTime(now)
+                .noteCreatorId(creatorId)
                 .build();
 
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
@@ -655,7 +656,7 @@ public class NoteServiceImpl implements NoteService {
         Long noteId = request.getId();
 
         // 1. 判断笔记是否存在
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExist(noteId);
 
         // 2. 判断是否点赞过笔记
         Long userId = LoginUserContextHolder.getUserId();
@@ -694,6 +695,7 @@ public class NoteServiceImpl implements NoteService {
                 .userId(userId)
                 .type(LikeUnlikeNoteTypeEnum.UNLIKE.getCode())
                 .createTime(LocalDateTime.now())
+                .noteCreatorId(creatorId)
                 .build();
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
                 .build();
@@ -729,7 +731,7 @@ public class NoteServiceImpl implements NoteService {
         Long noteId = request.getNoteId();
 
         // 1. 判断笔记是否存在
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExist(noteId);
 
         // 2. 判断是否已收藏过
         Long userId = LoginUserContextHolder.getUserId();
@@ -821,6 +823,7 @@ public class NoteServiceImpl implements NoteService {
         CollectUnCollectNoteMqDTO mqDTO = CollectUnCollectNoteMqDTO.builder()
                 .userId(userId)
                 .noteId(noteId)
+                .noteCreatorId(creatorId)
                 .build();
 
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
@@ -855,7 +858,7 @@ public class NoteServiceImpl implements NoteService {
         Long noteId = request.getId();
 
         // 1. 校验笔记是否存在
-        checkNoteIsExist(noteId);
+        Long creatorId = checkNoteIsExist(noteId);
 
         // 2. 校验笔记是否被收藏过
         Long userId = LoginUserContextHolder.getUserId();
@@ -899,6 +902,7 @@ public class NoteServiceImpl implements NoteService {
                 .noteId(noteId)
                 .userId(userId)
                 .type(CollectUnCollectNoteTypeEnum.UN_COLLECT.getCode())
+                .noteCreatorId(creatorId)
                 .build();
 
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
@@ -1073,13 +1077,13 @@ public class NoteServiceImpl implements NoteService {
     }
 
     /**
-     * 判断笔记是否存在（先走本地缓存, 再走 redis, 再走 DB）
+     * 判断笔记是否存在（先走本地缓存, 再走 redis, 再走 DB）, 如果存在返回该笔记的发布者 ID
      * 如果前两个缓存不存在需要把 DB 数据存入 redis,
      * 在下次获取的时候如果本地缓存还是不存在就会从 redis 存入
      *
      * @param noteId
      */
-    private void checkNoteIsExist(Long noteId) {
+    private Long checkNoteIsExist(Long noteId) {
 
         String existedCacheVOStr = LOCAL_CACHE.getIfPresent(noteId);
         FindNoteDetailRspVO vo = JsonUtils.parseObject(existedCacheVOStr, FindNoteDetailRspVO.class);
@@ -1088,8 +1092,8 @@ public class NoteServiceImpl implements NoteService {
             String noteDetailJson = redisTemplate.opsForValue().get(key);
             vo = JsonUtils.parseObject(noteDetailJson, FindNoteDetailRspVO.class);
             if (vo == null) {
-                int count = noteDOMapper.selectCountByNoteId(noteId);
-                if (count == 0) {
+                Long creatorId = noteDOMapper.selectCreatorIdByNoteId(noteId);
+                if (Objects.isNull(creatorId)) {
                     throw new BizException(ResponseCodeEnum.NOTE_NOT_FOUND);
                 }
 
@@ -1100,8 +1104,12 @@ public class NoteServiceImpl implements NoteService {
 
                     findNoteDetail(findNoteDetailReqVO);
                 });
+                
+                return creatorId;
             }
         }
+        
+        return vo.getCreatorId();
     }
 
     /**

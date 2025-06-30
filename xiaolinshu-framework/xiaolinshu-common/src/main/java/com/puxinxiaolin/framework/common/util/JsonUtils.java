@@ -6,11 +6,33 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 
 public class JsonUtils {
 
     private static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    /**
+     * 将 JSON 字符串转换为 List
+     *
+     * @param jsonStr
+     * @param clazz
+     * @param <T>
+     * @return
+     * @throws Exception
+     */
+    public static <T> List<T> parseList(String jsonStr, Class<T> clazz) throws Exception {
+
+        return OBJECT_MAPPER.readValue(jsonStr, new TypeReference<List<T>>() {
+            @Override
+            public Type getType() {
+                return OBJECT_MAPPER.getTypeFactory()
+                        .constructCollectionType(List.class, clazz);
+            }
+        });
+    }
 
     /**
      * 将 JSON 字符串转换为 Map

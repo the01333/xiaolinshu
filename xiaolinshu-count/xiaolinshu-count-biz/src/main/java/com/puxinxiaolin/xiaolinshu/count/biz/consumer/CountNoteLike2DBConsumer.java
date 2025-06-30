@@ -2,17 +2,22 @@ package com.puxinxiaolin.xiaolinshu.count.biz.consumer;
 
 import cn.hutool.core.collection.CollUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.count.biz.constant.MQConstants;
 import com.puxinxiaolin.xiaolinshu.count.biz.domain.mapper.NoteCountDOMapper;
+import com.puxinxiaolin.xiaolinshu.count.biz.domain.mapper.UserCountDOMapper;
+import com.puxinxiaolin.xiaolinshu.count.biz.model.dto.AggregationCountLikeUnLikeNoteMqDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -26,6 +31,10 @@ public class CountNoteLike2DBConsumer implements RocketMQListener<String> {
     private RateLimiter rateLimiter;
     @Resource
     private NoteCountDOMapper noteCountDOMapper;
+    @Resource
+    private UserCountDOMapper userCountDOMapper;
+    @Resource
+    private TransactionTemplate transactionTemplate;
 
     @Override
     public void onMessage(String message) {
@@ -34,16 +43,32 @@ public class CountNoteLike2DBConsumer implements RocketMQListener<String> {
 
         log.info("## 消费到了 MQ 【计数: 笔记点赞数入库】, {}...", message);
 
-        Map<Long, Integer> result = new HashMap<>();
+        List<AggregationCountLikeUnLikeNoteMqDTO> result = Lists.newArrayList();
         try {
-            result = JsonUtils.parseMap(message, Long.class, Integer.class);
-        } catch (JsonProcessingException e) {
+            result = JsonUtils.parseList(message, AggregationCountLikeUnLikeNoteMqDTO.class);
+        } catch (Exception e) {
             log.error("## 解析 JSON 字符串异常: {}", e.getMessage(), e);
         }
-        
+
         if (CollUtil.isNotEmpty(result)) {
-            result.forEach((noteId, count) ->
-                    noteCountDOMapper.insertOrUpdateLikeTotalByNoteId(count, noteId));
+            result.forEach(item -> {
+                Integer count = item.getCount();
+                Long noteId = item.getNoteId();
+                Long creatorId = item.getCreatorId();
+
+                transactionTemplate.execute(status -> {
+                    try {
+                        noteCountDOMapper.insertOrUpdateLikeTotalByNoteId(count, noteId);
+                        userCountDOMapper.insertOrUpdateLikeTotalByUserId(count, creatorId);
+                        
+                        return true;
+                    } catch (Exception e) {
+                        status.setRollbackOnly();
+                        log.error("{}", e.getMessage(), e);
+                    }
+                    return false;
+                });
+            });
         }
     }
 
