@@ -6,6 +6,16 @@ import org.apache.ibatis.annotations.Param;
 public interface NoteCountDOMapper {
 
     /**
+     * 新增或修改收藏数
+     *
+     * @param count
+     * @param noteId
+     * @return
+     */
+    int insertOrUpdateCollectTotalByNoteId(@Param("count") Integer count,
+                                           @Param("noteId") Long noteId);
+
+    /**
      * 新增或修改点赞数
      *
      * @param count

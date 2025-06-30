@@ -3,6 +3,9 @@ package com.puxinxiaolin.xiaolinshu.note.biz.constant;
 public interface MQConstants {
 
     // ------------------ collect or unCollect ---------------------
+
+    // Topic: 计数 - 笔记收藏数
+    String TOPIC_COUNT_NOTE_COLLECT = "CountNoteCollectTopic";
     
     // Topic 主题: 笔记收藏、取消收藏
     String TOPIC_COLLECT_OR_UN_COLLECT = "CollectUnCollectTopic";
