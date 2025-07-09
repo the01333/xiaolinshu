@@ -23,6 +23,7 @@ import com.puxinxiaolin.xiaolinshu.note.biz.domain.mapper.TopicDOMapper;
 import com.puxinxiaolin.xiaolinshu.note.biz.enums.*;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.dto.CollectUnCollectNoteMqDTO;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.dto.LikeUnLikeNoteMqDTO;
+import com.puxinxiaolin.xiaolinshu.note.biz.model.dto.NoteOperateMqDTO;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.vo.*;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.DistributedIdGeneratorRpcService;
 import com.puxinxiaolin.xiaolinshu.note.biz.rpc.KeyValueRpcService;
@@ -119,6 +120,7 @@ public class NoteServiceImpl implements NoteService {
             }
         }
 
+        // 走 RPC
         String snowflakeId = distributedIdGeneratorRpcService.getSnowflakeId("note");
         String contentUuid = null;
         String content = request.getContent();
@@ -167,6 +169,29 @@ public class NoteServiceImpl implements NoteService {
                 keyValueRpcService.deleteNoteContent(contentUuid);
             }
         }
+        
+        // 走 MQ, 同步缓存
+        NoteOperateMqDTO mqDTO = NoteOperateMqDTO.builder()
+                .creatorId(creatorId)
+                .noteId(Long.valueOf(snowflakeId))
+                .type(NoteOperateEnum.PUBLISH.getCode())
+                .build();
+
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
+                .build();
+        String destination = MQConstants.TOPIC_NOTE_OPERATE + ":" + MQConstants.TAG_NOTE_PUBLISH;
+        
+        rocketMQTemplate.asyncSend(destination, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【笔记发布】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【笔记发布】MQ 发送异常: ", throwable);
+            }
+        });
 
         return Response.success();
     }
@@ -413,6 +438,7 @@ public class NoteServiceImpl implements NoteService {
      * @return
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Response<?> deleteNote(DeleteNoteReqVO request) {
         Long noteId = request.getId();
         NoteDO exist = noteDOMapper.selectByPrimaryKey(noteId);
@@ -442,6 +468,31 @@ public class NoteServiceImpl implements NoteService {
         // 用 broadcast 模式把所有实例的本地缓存都删除掉
         removeLocalCacheByMQBroadcast(noteId);
 
+        log.info("====> MQ: 删除笔记本地缓存发送成功...");
+
+        // 走 MQ, 同步缓存
+        NoteOperateMqDTO mqDTO = NoteOperateMqDTO.builder()
+                .creatorId(exist.getCreatorId())
+                .noteId(noteId)
+                .type(NoteOperateEnum.DELETE.getCode())
+                .build();
+
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
+                .build();
+        String destination = MQConstants.TOPIC_NOTE_OPERATE + ":" + MQConstants.TAG_NOTE_DELETE;
+
+        rocketMQTemplate.asyncSend(destination, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【笔记删除】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable throwable) {
+                log.error("==> 【笔记删除】MQ 发送异常: ", throwable);
+            }
+        });
+        
         return Response.success();
     }
 

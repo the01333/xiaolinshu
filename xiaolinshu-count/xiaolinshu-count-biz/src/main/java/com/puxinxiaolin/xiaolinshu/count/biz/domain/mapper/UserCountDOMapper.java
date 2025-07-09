@@ -6,6 +6,16 @@ import org.apache.ibatis.annotations.Param;
 public interface UserCountDOMapper {
 
     /**
+     * 添加或更新笔记发布总数
+     *
+     * @param count
+     * @param userId
+     * @return
+     */
+    int insertOrUpdateNoteTotalByUserId(@Param("count") Integer count,
+                                        @Param("userId") Long userId);
+
+    /**
      * 添加或更新笔记点赞总数
      *
      * @param count
