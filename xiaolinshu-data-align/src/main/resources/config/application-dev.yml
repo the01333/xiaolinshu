@@ -70,6 +70,11 @@ xxl:
     logPath: /data/applogs/xxl-job/jobhandler # 执行器日志存放路径
     logRetentionDays: 30 # 日志保留时间（单位：天）
 
-
 table:
   shards: 3  # 日增量表分片数
+
+rocketmq:
+  name-server: 192.168.101.17:9876
+  consumer:
+    group: xiaolinshu_group
+    pull-batch-size: 5

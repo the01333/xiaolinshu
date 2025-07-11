@@ -59,8 +59,8 @@
         <caffeine.version>3.1.8</caffeine.version>
         <rocketmq.version>2.2.3</rocketmq.version>
         <buffertrigger.version>0.2.21</buffertrigger.version>
-<!--        <xxl-job.version>3.1.1</xxl-job.version>-->
-        <xxl-job.version>2.4.1</xxl-job.version>
+        <xxl-job.version>3.1.1</xxl-job.version>
+<!--        <xxl-job.version>2.4.1</xxl-job.version>-->
     </properties>
 
     <dependencyManagement>
@@ -360,11 +360,11 @@
     </build>
 
     <repositories>
-        <repository>
-            <id>huaweicloud</id>
-            <name>huawei</name>
-            <url>https://mirrors.huaweicloud.com/repository/maven/</url>
-        </repository>
+<!--        <repository>-->
+<!--            <id>huaweicloud</id>-->
+<!--            <name>huawei</name>-->
+<!--            <url>https://mirrors.huaweicloud.com/repository/maven/</url>-->
+<!--        </repository>-->
         <repository>
             <id>aliyunmaven</id>
             <name>aliyun</name>

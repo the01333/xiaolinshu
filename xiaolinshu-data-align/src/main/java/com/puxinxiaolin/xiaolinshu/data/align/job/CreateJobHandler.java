@@ -1,10 +1,9 @@
 package com.puxinxiaolin.xiaolinshu.data.align.job;
 
-import com.puxinxiaolin.xiaolinshu.data.align.constant.TableConstant;
+import com.puxinxiaolin.xiaolinshu.data.align.constant.TableConstants;
 import com.puxinxiaolin.xiaolinshu.data.align.domain.mapper.CreateTableMapper;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -20,11 +19,6 @@ public class CreateJobHandler {
     @Value("${table.shards}")
     private int tableShards;
 
-    @PostConstruct
-    public void print() {
-        System.out.println("CreateJobHandler.tableShards: " + tableShards);
-    }
-
     @Resource
     private CreateTableMapper createTableMapper;
 
@@ -38,7 +32,7 @@ public class CreateJobHandler {
 
         if (tableShards > 0) {
             for (int hashKey = 0; hashKey < tableShards; hashKey++) {
-                String tableNameSuffix = TableConstant.buildTableNameSuffix(date, hashKey);
+                String tableNameSuffix = TableConstants.buildTableNameSuffix(date, hashKey);
 
                 createTableMapper.createDataAlignFollowingCountTempTable(tableNameSuffix);
                 createTableMapper.createDataAlignFansCountTempTable(tableNameSuffix);
