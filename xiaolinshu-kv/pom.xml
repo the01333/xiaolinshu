@@ -15,7 +15,6 @@
     <packaging>pom</packaging>
     
     <modules>
-
         <module>xiaolinshu-kv-api</module>
         <module>xiaolinshu-kv-biz</module>
     </modules>
