@@ -4,7 +4,7 @@ import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.data.align.constant.MQConstants;
 import com.puxinxiaolin.xiaolinshu.data.align.constant.RedisKeyConstants;
 import com.puxinxiaolin.xiaolinshu.data.align.constant.TableConstants;
-import com.puxinxiaolin.xiaolinshu.data.align.domain.mapper.InsertRecordMapper;
+import com.puxinxiaolin.xiaolinshu.data.align.domain.mapper.InsertMapper;
 import com.puxinxiaolin.xiaolinshu.data.align.model.dto.FollowUnfollowMqDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class TodayUserFollowIncrementData2DBConsumer implements RocketMQListener
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
-    private InsertRecordMapper insertRecordMapper;
+    private InsertMapper insertMapper;
     
     @Value("${table.shards}")
     private int tableShards;
@@ -72,7 +72,7 @@ public class TodayUserFollowIncrementData2DBConsumer implements RocketMQListener
             
             try {
                 // 将日增量变更数据，写入表 t_data_align_following_count_temp_日期_分片序号
-                insertRecordMapper.insert2DataAlignUserFollowingCountTempTable(TableConstants.buildTableNameSuffix(date, userIdHashKey), userId);
+                insertMapper.insert2DataAlignUserFollowingCountTempTable(TableConstants.buildTableNameSuffix(date, userIdHashKey), userId);
             } catch (Exception e) {
                 log.error("{}", e.getMessage(), e);
             }
@@ -92,7 +92,7 @@ public class TodayUserFollowIncrementData2DBConsumer implements RocketMQListener
 
             try {
                 // 将日增量变更数据，写入表 t_data_align_fans_count_temp_日期_分片序号
-                insertRecordMapper.insert2DataAlignUserFollowingCountTempTable(TableConstants.buildTableNameSuffix(date, targetUserIdHashKey), targetUserId);
+                insertMapper.insert2DataAlignUserFollowingCountTempTable(TableConstants.buildTableNameSuffix(date, targetUserIdHashKey), targetUserId);
             } catch (Exception e) {
                 log.error("{}", e.getMessage(), e);
             }
