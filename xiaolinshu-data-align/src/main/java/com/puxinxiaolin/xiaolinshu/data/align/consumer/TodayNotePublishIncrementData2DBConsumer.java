@@ -4,8 +4,7 @@ import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.data.align.constant.MQConstants;
 import com.puxinxiaolin.xiaolinshu.data.align.constant.RedisKeyConstants;
 import com.puxinxiaolin.xiaolinshu.data.align.constant.TableConstants;
-import com.puxinxiaolin.xiaolinshu.data.align.domain.mapper.InsertRecordMapper;
-import com.puxinxiaolin.xiaolinshu.data.align.model.dto.CollectUnCollectNoteMqDTO;
+import com.puxinxiaolin.xiaolinshu.data.align.domain.mapper.InsertMapper;
 import com.puxinxiaolin.xiaolinshu.data.align.model.dto.NoteOperateMqDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,6 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -40,7 +38,7 @@ public class TodayNotePublishIncrementData2DBConsumer implements RocketMQListene
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
-    private InsertRecordMapper insertRecordMapper;
+    private InsertMapper insertMapper;
 
     @Value("${table.shards}")
     private int tableShards;
@@ -70,7 +68,7 @@ public class TodayNotePublishIncrementData2DBConsumer implements RocketMQListene
         if (Objects.equals(result, 0L)) {
             // 若无，才会落库，减轻数据库压力
             long userIdHashKey = noteCreatorId % tableShards;
-            insertRecordMapper.insert2DataAlignUserNotePublishCountTempTable(TableConstants.buildTableNameSuffix(date, userIdHashKey), noteCreatorId);
+            insertMapper.insert2DataAlignUserNotePublishCountTempTable(TableConstants.buildTableNameSuffix(date, userIdHashKey), noteCreatorId);
 
             // 3. 数据库写入成功后，再添加布隆过滤器中
             RedisScript<Long> bloomAddScript = RedisScript.of("return redis.call('BF.ADD', KEYS[1], ARGV[1])", Long.class);
