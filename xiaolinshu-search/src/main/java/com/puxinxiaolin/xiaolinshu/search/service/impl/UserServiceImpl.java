@@ -1,7 +1,9 @@
 package com.puxinxiaolin.xiaolinshu.search.service.impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.google.common.collect.Lists;
 import com.puxinxiaolin.framework.common.response.PageResponse;
+import com.puxinxiaolin.framework.common.util.NumberUtils;
 import com.puxinxiaolin.xiaolinshu.search.index.UserIndex;
 import com.puxinxiaolin.xiaolinshu.search.model.vo.SearchUserReqVO;
 import com.puxinxiaolin.xiaolinshu.search.model.vo.SearchUserRespVO;
@@ -16,6 +18,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.stereotype.Service;
@@ -42,19 +45,30 @@ public class UserServiceImpl implements UserService {
         Integer pageNo = request.getPageNo();
 
         SearchRequest searchRequest = new SearchRequest(UserIndex.NAME);
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
-        searchSourceBuilder.query(QueryBuilders.multiMatchQuery(
+        // 构建条件
+        sourceBuilder.query(QueryBuilders.multiMatchQuery(
                 keyword, UserIndex.FIELD_USER_NICKNAME, UserIndex.FIELD_USER_XIAOLINSHU_ID)
         );
         FieldSortBuilder sortBuilder = new FieldSortBuilder(UserIndex.FIELD_USER_FANS_TOTAL)
                 .order(SortOrder.DESC);
-        searchSourceBuilder.sort(sortBuilder);
+        sourceBuilder.sort(sortBuilder);
 
+        // 分页
         int pageSize = 10;
         int from = (pageNo - 1) * pageSize;
+        sourceBuilder.from(from);
+        sourceBuilder.size(pageSize);
 
-        searchRequest.source(searchSourceBuilder);
+        // 设置高亮
+        HighlightBuilder highlightBuilder = new HighlightBuilder();
+        highlightBuilder.field(UserIndex.FIELD_USER_NICKNAME)
+                .preTags("<strong>")
+                .postTags("</strong>");
+        sourceBuilder.highlighter(highlightBuilder);
+
+        searchRequest.source(sourceBuilder);
 
         List<SearchUserRespVO> result = Lists.newArrayList();
         long total = 0;
@@ -76,21 +90,29 @@ public class UserServiceImpl implements UserService {
                 String xiaolinshuId = (String) sourceAsMap.get(UserIndex.FIELD_USER_XIAOLINSHU_ID);
                 Integer noteTotal = (Integer) sourceAsMap.get(UserIndex.FIELD_USER_NOTE_TOTAL);
                 Integer fansTotal = (Integer) sourceAsMap.get(UserIndex.FIELD_USER_FANS_TOTAL);
-
+                // 高亮字段
+                String highlightNickname = null;
+                if (CollUtil.isNotEmpty(hit.getHighlightFields()) 
+                        && hit.getHighlightFields().containsKey(UserIndex.FIELD_USER_NICKNAME)) {
+                    highlightNickname = hit.getHighlightFields().get(UserIndex.FIELD_USER_NICKNAME)
+                            .fragments()[0].string();
+                }
+                
                 SearchUserRespVO respVO = SearchUserRespVO.builder()
                         .userId(userId)
                         .nickName(nickname)
                         .avatar(avatar)
                         .xiaolinshuId(xiaolinshuId)
                         .noteTotal(noteTotal)
-                        .fansTotal(fansTotal)
+                        .fansTotal(NumberUtils.formatNumberString(fansTotal))
+                        .highlightNickname(highlightNickname)
                         .build();
                 result.add(respVO);
             }
         } catch (Exception e) {
             log.error("==> 查询 Elasticsearch 异常: {}", e.getMessage(), e);
         }
-        
+
         return PageResponse.success(result, pageNo, total);
     }
 

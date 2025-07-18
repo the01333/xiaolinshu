@@ -14,6 +14,11 @@ public class SearchUserRespVO {
     private Long userId;
     
     private String nickName;
+
+    /**
+     * 昵称: 关键词高亮
+     */
+    private String highlightNickname;
     
     private String avatar;
     
@@ -21,6 +26,6 @@ public class SearchUserRespVO {
     
     private Integer noteTotal;
     
-    private Integer fansTotal;
+    private String fansTotal;
     
 }
