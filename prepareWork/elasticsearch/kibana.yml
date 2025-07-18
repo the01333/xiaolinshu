@@ -1,0 +1,5 @@
+server.name: kibana
+server.host: "0"
+elasticsearch.hosts: [ "http://172.17.0.1:9200" ] # 修改为宿主机 IP 地址
+xpack.monitoring.ui.container.elasticsearch.enabled: true
+i18n.locale: "zh-CN" # 设置使用中文

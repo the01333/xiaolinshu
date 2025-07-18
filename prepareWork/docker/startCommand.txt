@@ -94,3 +94,30 @@ docker run -d \
 -p 8080:8080 --network rocketmq \
 -e "JAVA_OPTS=-Xmx200M -Xms200M -Xmn100M -Drocketmq.namesrv.addr=rocketmq-namesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel=false" \
 apacherocketmq/rocketmq-dashboard
+
+7. elasticsearch
+docker run -d --name es --restart=always \
+-p 9200:9200 -p 9300:9300 \
+-e "discovery.type=single-node" \
+-e ES_JAVA_OPTS="-Xms1024m -Xmx1024m" \
+-v /soft/docker/elasticsearch/config:/usr/share/elasticsearch/config \
+-v /soft/docker/elasticsearch/data:/usr/share/elasticsearch/data \
+-v /soft/docker/elasticsearch/plugins:/usr/share/elasticsearch/plugins \
+-v /soft/docker/elasticsearch/logs:/usr/share/elasticsearch/logs \
+elasticsearch:7.3.0
+
+7.1 kibana
+docker cp kibana:/usr/share/kibana/config E:\docker\kibana
+# 然后去修改挂载的 kibana.yml 文件, 之后重新启动
+docker run -d --name kibana \
+-p 5601:5601 \
+-v /soft/docker/kibana/config:/usr/share/kibana/config \
+kibana:7.3.0
+
+7.2 ik 分词器
+docker exec -it es bash
+bin/elasticsearch-plugin install https://get.infini.cloud/elasticsearch/analysis-ik/7.3.0
+exit
+docker cp es:/usr/share/elasticsearch/plugins/analysis-ik /soft/docker/elasticsearch/plugins
+docker cp es:/usr/share/elasticsearch/config/analysis-ik /soft/docker/elasticsearch/config
+docker restart es

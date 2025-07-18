@@ -1,0 +1,137 @@
+# 新增笔记索引
+PUT /note
+{
+	"settings": {
+		"number_of_shards": 1,
+		"number_of_replicas": 1
+	},
+	"mappings": {
+	  "properties": {
+	    "id": {"type": "long"},
+	    "cover": {"type": "keyword"},
+	    "title": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},
+	    "topic": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},
+	    "creator_nickname": {"type": "keyword"},
+	    "creator_avatar": {"type": "keyword"},
+	    "type": {"type": "integer"},
+	    "create_time": {
+	      "type": "date",
+	      "format": "yyyy-MM-dd HH:mm:ss"
+	    },
+	    "update_time": {
+	      "type": "date",
+	      "format": "yyyy-MM-dd HH:mm:ss"
+	    },
+	    "like_total": {"type": "integer"},
+	    "collect_total": {"type": "integer"},
+	    "comment_total": {"type": "integer"}
+	  }
+	}
+}
+
+
+# 添加文档1
+PUT /note/_doc/1824367890233557066
+{
+  "id": 1824367890233557066,
+  "title": "【最美壁纸】宝子们，来领取今天的壁纸啦❤️❤️❤️",
+  "cover": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "topic": "无水印壁纸",
+  "creator_avatar": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "creator_nickname": "犬小哈",
+  "type": 0,
+  "create_time": "2024-09-01 16:49:35",
+  "update_time": "2024-09-02 15:22:55",
+  "like_total": 9981,
+  "collect_total": 6908,
+  "comment_total": 678
+}
+
+# 添加文档2
+PUT /note/_doc/1824370663234732114
+{
+  "id": 1824370663234732114,
+  "title": "治愈系壁纸来啦！！🐾",
+  "cover": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "topic": "",
+  "creator_avatar": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "creator_nickname": "犬大哈",
+  "type": 0,
+  "create_time": "2024-08-16 16:49:35",
+  "update_time": "2024-09-02 15:22:55",
+  "like_total": 406671,
+  "collect_total": 20981,
+  "comment_total": 2348
+}
+
+# 添加文档3
+PUT /note/_doc/1824370663356366868
+{
+  "id": 1824370663356366868,
+  "title": "✨新的微信背景图来喽！✨",
+  "cover": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "topic": "",
+  "creator_avatar": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "creator_nickname": "犬二哈",
+  "type": 0,
+  "create_time": "2024-08-16 16:49:35",
+  "update_time": "2024-09-02 15:22:55",
+  "like_total": 32109,
+  "collect_total": 2946,
+  "comment_total": 3053
+}
+
+
+
+# 新增用户索引
+PUT /user
+{
+	"settings": {
+		"number_of_shards": 1,
+		"number_of_replicas": 1
+	},
+	"mappings": {
+	  "properties": {
+	    "id": {"type": "long"},
+	    "nickname": {"type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart"},
+	    "avatar": {"type": "keyword"},
+	    "xiaohashu_id": {"type": "keyword"},
+	    "note_total": {"type": "integer"},
+	    "fans_total": {"type": "integer"}
+	  }
+	}
+}
+
+
+# 添加文档1
+PUT /user/_doc/27
+{
+  "id": 27,
+  "nickname": "犬小哈",
+  "avatar": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "xiaohashu_id": "10100678",
+  "note_total": 28,
+  "fans_total": 999999
+}
+
+# 添加文档2
+PUT /user/_doc/28
+{
+  "id": 28,
+  "nickname": "犬大哈",
+  "avatar": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "xiaohashu_id": "10100679",
+  "note_total": 1,
+  "fans_total": 6798
+}
+
+# 添加文档3
+PUT /user/_doc/29
+{
+  "id": 29,
+  "nickname": "犬二哈",
+  "avatar": "http://116.62.199.48:9000/weblog/c89cc6b66f0341c0b7854771ae063eac.jpg",
+  "xiaohashu_id": "10100680",
+  "note_total": 66,
+  "fans_total": 1576
+}

@@ -22,8 +22,8 @@
         <module name="xiaolinshu-note-biz" />
         <module name="xiaolinshu-user-api" />
         <module name="xiaolinshu-count-api" />
-        <module name="xiaolinshu-user-biz" />
         <module name="xiaolinshu-distributed-id-generator-biz" />
+        <module name="xiaolinshu-user-biz" />
         <module name="xiaolinshu-spring-boot-starter-biz-context" />
         <module name="xiaolinshu-spring-boot-starter-biz-operationlog" />
         <module name="xiaolinshu-kv-biz" />
@@ -31,6 +31,7 @@
         <module name="xiaolinshu-spring-boot-starter-jackson" />
         <module name="xiaolinshu-kv-api" />
         <module name="xiaolinshu-oss-biz" />
+        <module name="xiaolinshu-search" />
         <module name="xiaolinshu-auth" />
         <module name="xiaolinshu-user-relation-biz" />
         <module name="xiaolinshu-common" />

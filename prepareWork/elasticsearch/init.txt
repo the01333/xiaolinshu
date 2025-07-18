@@ -1,0 +1,27 @@
+docker run -d --name es \
+-p 9200:9200 -p 9300:9300 \
+-e "discovery.type=single-node" \
+-e ES_JAVA_OPTS="-Xms1024m -Xmx1024m" \
+elasticsearch:7.3.0
+
+docker cp es7:/usr/share/elasticsearch/config /soft/docker/elasticsearch
+docker cp es7:/usr/share/elasticsearch/data /soft/docker/elasticsearch
+docker cp es7:/usr/share/elasticsearch/plugins /soft/docker/elasticsearch
+
+# 在挂载后会在宿主机内出现对应的挂载文件夹和文件，我们需要修改一下 elasticsearch.yml 文件
+--------------------------- elasticsearch.yml ------------------------------------
+cluster.name: "xiaolinshu-cluster"
+network.host: 0.0.0.0
+# 跨域相关
+http.cors.allow-origin: "*"
+http.cors.enabled: true
+http.cors.allow-headers: Authorization,X-Requested-With,Content-Length,Content-Type
+-----------------------------------------------------------------------------------
+
+# 有可能会启动不起来，看看是不是权限问题
+-----------------------------------------------------------------------------------
+# 递归修改整个elasticsearch目录的所有者为UID 1000（容器内用户）
+chown -R 1000:1000 /soft/docker/elasticsearch/
+# 确认权限是否生效（查看目录所有者应为1000）
+ls -ld /soft/docker/elasticsearch/logs
+-----------------------------------------------------------------------------------
