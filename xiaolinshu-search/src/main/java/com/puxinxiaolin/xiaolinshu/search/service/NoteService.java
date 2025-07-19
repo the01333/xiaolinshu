@@ -6,14 +6,14 @@ import com.puxinxiaolin.xiaolinshu.search.model.vo.SearchNoteRespVO;
 import com.puxinxiaolin.xiaolinshu.search.model.vo.SearchUserReqVO;
 import com.puxinxiaolin.xiaolinshu.search.model.vo.SearchUserRespVO;
 
-public interface UserService {
-
+public interface NoteService {
+    
     /**
-     * 搜索用户
+     * 搜索笔记
      *
      * @param request
      * @return
      */
-    PageResponse<SearchUserRespVO> searchUser(SearchUserReqVO request);
-    
+    PageResponse<SearchNoteRespVO> searchNote(SearchNoteReqVO request);
+
 }

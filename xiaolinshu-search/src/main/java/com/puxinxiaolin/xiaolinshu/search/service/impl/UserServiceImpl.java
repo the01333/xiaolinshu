@@ -92,12 +92,12 @@ public class UserServiceImpl implements UserService {
                 Integer fansTotal = (Integer) sourceAsMap.get(UserIndex.FIELD_USER_FANS_TOTAL);
                 // 高亮字段
                 String highlightNickname = null;
-                if (CollUtil.isNotEmpty(hit.getHighlightFields()) 
+                if (CollUtil.isNotEmpty(hit.getHighlightFields())
                         && hit.getHighlightFields().containsKey(UserIndex.FIELD_USER_NICKNAME)) {
                     highlightNickname = hit.getHighlightFields().get(UserIndex.FIELD_USER_NICKNAME)
                             .fragments()[0].string();
                 }
-                
+
                 SearchUserRespVO respVO = SearchUserRespVO.builder()
                         .userId(userId)
                         .nickName(nickname)
