@@ -3,23 +3,24 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.puxinxiaolin</groupId>
-        <artifactId>xiaolinshu</artifactId>
-        <version>${revision}</version>
+        <artifactId>xiaolinshu-search</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <packaging>jar</packaging>
-    <artifactId>xiaolinshu-data-align</artifactId>
+    <artifactId>xiaolinshu-search-biz</artifactId>
     <name>${project.artifactId}</name>
-    <description>数据对齐服务</description>
+    <description>搜索服务业务模块</description>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>com.puxinxiaolin</groupId>
             <artifactId>xiaolinshu-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.puxinxiaolin</groupId>
+            <artifactId>xiaolinshu-spring-boot-starter-biz-operationlog</artifactId>
         </dependency>
         <dependency>
             <groupId>com.puxinxiaolin</groupId>
@@ -38,8 +39,45 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- es -->
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+        </dependency>
+
+        <!-- canal -->
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.otter</groupId>
+            <artifactId>canal.protocol</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
@@ -51,37 +89,6 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-3-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-pool2</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.xuxueli</groupId>
-            <artifactId>xxl-job-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.rocketmq</groupId>
-            <artifactId>rocketmq-spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 
