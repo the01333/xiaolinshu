@@ -28,11 +28,21 @@ public class SearchNoteRespVO {
     
     private String nickname;
     
-    private LocalDateTime updateTime;
+    private String updateTime;
 
     /**
      * 被点赞总数
      */
     private String likeTotal;
+
+    /**
+     * 被评论总数
+     */
+    private String commentTotal;
+
+    /**
+     * 被收藏总数
+     */
+    private String collectTotal;
     
 }

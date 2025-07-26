@@ -43,23 +43,23 @@ public class JacksonAutoConfiguration {
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         // 支持 LocalDateTime、LocalDate、LocalTime
         javaTimeModule.addSerializer(LocalDateTime.class,
-                new LocalDateTimeSerializer(DateTimeFormatter.ofPattern(DateConstants.Y_M_D_H_M_S_FORMAT)));
+                new LocalDateTimeSerializer(DateConstants.Y_M_D_H_M_S));
         javaTimeModule.addDeserializer(LocalDateTime.class,
-                new LocalDateTimeDeserializer(DateTimeFormatter.ofPattern(DateConstants.Y_M_D_H_M_S_FORMAT)));
+                new LocalDateTimeDeserializer(DateConstants.Y_M_D_H_M_S));
         javaTimeModule.addSerializer(LocalDate.class,
-                new LocalDateSerializer(DateTimeFormatter.ofPattern(DateConstants.Y_M_D_FORMAT)));
+                new LocalDateSerializer(DateConstants.Y_M_D));
         javaTimeModule.addDeserializer(LocalDate.class,
-                new LocalDateDeserializer(DateTimeFormatter.ofPattern(DateConstants.Y_M_D_FORMAT)));
+                new LocalDateDeserializer(DateConstants.Y_M_D));
         javaTimeModule.addSerializer(LocalTime.class,
-                new LocalTimeSerializer(DateTimeFormatter.ofPattern(DateConstants.H_M_S_FORMAT)));
+                new LocalTimeSerializer(DateConstants.H_M_S));
         javaTimeModule.addDeserializer(LocalTime.class,
-                new LocalTimeDeserializer(DateTimeFormatter.ofPattern(DateConstants.H_M_S_FORMAT)));
+                new LocalTimeDeserializer(DateConstants.H_M_S));
 
         // 支持 YearMonth
         javaTimeModule.addSerializer(YearMonth.class,
-                new YearMonthSerializer(DateTimeFormatter.ofPattern(DateConstants.Y_M_FORMATER)));
+                new YearMonthSerializer(DateConstants.Y_M));
         javaTimeModule.addDeserializer(YearMonth.class,
-                new YearMonthDeserializer(DateTimeFormatter.ofPattern(DateConstants.Y_M_FORMATER)));
+                new YearMonthDeserializer(DateConstants.Y_M));
 
         objectMapper.registerModule(javaTimeModule);
 

@@ -4,7 +4,9 @@ import cn.hutool.core.collection.CollUtil;
 import com.alibaba.nacos.shaded.com.google.common.collect.Lists;
 import com.puxinxiaolin.framework.common.constant.DateConstants;
 import com.puxinxiaolin.framework.common.response.PageResponse;
+import com.puxinxiaolin.framework.common.util.DateUtils;
 import com.puxinxiaolin.framework.common.util.NumberUtils;
+import com.puxinxiaolin.xiaolinshu.search.enums.NotePublishTimeRangeEnum;
 import com.puxinxiaolin.xiaolinshu.search.enums.NoteSortTypeEnum;
 import com.puxinxiaolin.xiaolinshu.search.index.NoteIndex;
 import com.puxinxiaolin.xiaolinshu.search.model.vo.SearchNoteReqVO;
@@ -12,6 +14,7 @@ import com.puxinxiaolin.xiaolinshu.search.model.vo.SearchNoteRespVO;
 import com.puxinxiaolin.xiaolinshu.search.service.NoteService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -20,8 +23,6 @@ import org.elasticsearch.common.lucene.search.function.CombineFunction;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.lucene.search.function.FunctionScoreQuery;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
@@ -122,6 +123,7 @@ public class NoteServiceImpl implements NoteService {
         Integer pageNo = request.getPageNo();
         Integer type = request.getType();
         Integer sort = request.getSort();
+        Integer publishTimeRange = request.getPublishTimeRange();
 
         // 1. 构建搜索请求
         SearchRequest searchRequest = new SearchRequest(NoteIndex.NAME);
@@ -161,6 +163,23 @@ public class NoteServiceImpl implements NoteService {
         );
         if (Objects.nonNull(type)) {
             boolQueryBuilder.filter(QueryBuilders.termQuery(NoteIndex.FIELD_NOTE_TYPE, type));
+        }
+        NotePublishTimeRangeEnum notePublishTimeRangeEnum = NotePublishTimeRangeEnum.valueOf(publishTimeRange);
+        if (Objects.nonNull(notePublishTimeRangeEnum)) {
+            String endTime = LocalDateTime.now().format(DateConstants.Y_M_D_H_M_S);
+            String startTime = null;
+            switch (notePublishTimeRangeEnum) {
+                case DAY -> startTime = DateUtils.localDateTime2String(LocalDateTime.now().minusDays(1));
+                case WEEK -> startTime = DateUtils.localDateTime2String(LocalDateTime.now().minusWeeks(1));
+                case HALF_YEAR -> startTime = DateUtils.localDateTime2String(LocalDateTime.now().minusMonths(6));
+            }
+                                                                                         
+            if (StringUtils.isNotBlank(startTime)) {
+                boolQueryBuilder.filter(QueryBuilders.rangeQuery(NoteIndex.FIELD_NOTE_CREATE_TIME)
+                        .gte(startTime)
+                        .lte(endTime)
+                );
+            }
         }
 
         // 2.2 按照选择的条件进行排序, 如果没选默认综合排序
@@ -294,8 +313,10 @@ public class NoteServiceImpl implements NoteService {
                 String nickname = (String) sourceAsMap.get(NoteIndex.FIELD_NOTE_NICKNAME);
                 // 获取更新时间
                 String updateTimeStr = (String) sourceAsMap.get(NoteIndex.FIELD_NOTE_UPDATE_TIME);
-                LocalDateTime updateTime = LocalDateTime.parse(updateTimeStr, DateConstants.DATE_FORMAT_Y_M_D_H_M_S);
+                LocalDateTime updateTime = LocalDateTime.parse(updateTimeStr, DateConstants.Y_M_D_H_M_S);
                 Integer likeTotal = (Integer) sourceAsMap.get(NoteIndex.FIELD_NOTE_LIKE_TOTAL);
+                Integer commentTotal = (Integer) sourceAsMap.get(NoteIndex.FIELD_NOTE_COMMENT_TOTAL);
+                Integer collectTotal = (Integer) sourceAsMap.get(NoteIndex.FIELD_NOTE_COLLECT_TOTAL);
 
                 // 获取高亮字段
                 String highlightedTitle = null;
@@ -311,8 +332,10 @@ public class NoteServiceImpl implements NoteService {
                         .highlightTitle(highlightedTitle)
                         .avatar(avatar)
                         .nickname(nickname)
-                        .updateTime(updateTime)
+                        .updateTime(DateUtils.formatRelativeTime(updateTime))
                         .likeTotal(NumberUtils.formatNumberString(likeTotal))
+                        .commentTotal(NumberUtils.formatNumberString(commentTotal))
+                        .collectTotal(NumberUtils.formatNumberString(collectTotal))
                         .build();
                 result.add(searchNoteRspVO);
             }

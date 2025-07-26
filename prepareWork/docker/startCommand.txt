@@ -121,3 +121,17 @@ exit
 docker cp es:/usr/share/elasticsearch/plugins/analysis-ik /soft/docker/elasticsearch/plugins
 docker cp es:/usr/share/elasticsearch/config/analysis-ik /soft/docker/elasticsearch/config
 docker restart es
+
+8. mysql
+docker run -d --name mysql8 --restart=always \
+-p 3306:3306 -e MYSQL_ROOT_PASSWORD=root mysql:8.0.27
+docker cp mysql8.0:/etc/mysql /soft/docker/mysql8/config
+
+/soft/docker/mysql8/config
+
+docker run -d --name mysql8 \
+-p 3306:3306 -e MYSQL_ROOT_PASSWORD=root \
+-v /soft/docker/mysql8/config:/etc/mysql \
+-v /soft/docker/mysql8/data:/var/lib/mysql \
+-v /soft/docker/mysql8/mysql-files:/var/lib/mysql-files mysql:8.0.27
+

@@ -3,15 +3,17 @@ package com.puxinxiaolin.framework.common.constant;
 import java.time.format.DateTimeFormatter;
 
 public interface DateConstants {
-    
-    String Y_M_D_H_M_S_FORMAT = "yyyy-MM-dd HH:mm:ss";
-    
-    String Y_M_FORMATER = "yyyy-MM";
-    
-    String Y_M_D_FORMAT = "yyyy-MM-dd";
-    
-    String H_M_S_FORMAT = "HH:mm:ss";
 
-    DateTimeFormatter DATE_FORMAT_Y_M_D_H_M_S = DateTimeFormatter.ofPattern(Y_M_D_H_M_S_FORMAT);
+    DateTimeFormatter H_M = DateTimeFormatter.ofPattern("HH:mm");
+    
+    DateTimeFormatter M_D = DateTimeFormatter.ofPattern("MM-dd");
+    
+    DateTimeFormatter Y_M_D_H_M_S = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    DateTimeFormatter Y_M = DateTimeFormatter.ofPattern("yyyy-MM");
+
+    DateTimeFormatter Y_M_D = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    DateTimeFormatter H_M_S = DateTimeFormatter.ofPattern("HH:mm:ss");
     
 }
