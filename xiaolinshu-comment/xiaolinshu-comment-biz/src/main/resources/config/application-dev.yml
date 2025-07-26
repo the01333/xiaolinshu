@@ -42,3 +42,15 @@ spring:
 logging:
   level:
     com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper: debug
+
+rocketmq:
+  name-server: 192.168.101.17:9876
+  producer:
+    group: xiaolinshu_group
+    send-message-timeout: 3000  # 消息发送超时时间
+    retry-times-when-send-failed: 0  # 同步消息发送失败后的重试次数
+    retry-times-when-send-async-failed: 0 # 异步消息发送失败后的重试次数
+    max-message-size: 4096  # 消息的最大大小
+  consumer:
+    group: xiaolinshu_group
+    pull-batch-size: 5  # 每次拉取的最大消息数
