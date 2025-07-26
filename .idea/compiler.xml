@@ -15,26 +15,28 @@
           <entry name="$PROJECT_DIR$/../../../../../../maven/apache-maven-3.6.3/maven_repo/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
         <module name="xiaolinshu-count-biz" />
-        <module name="xiaolinshu-note-api" />
         <module name="xiaolinshu-data-align" />
-        <module name="xiaolinshu-gateway" />
         <module name="xiaolinshu-distributed-id-generator-api" />
-        <module name="xiaolinshu-note-biz" />
-        <module name="xiaolinshu-user-api" />
         <module name="xiaolinshu-count-api" />
         <module name="xiaolinshu-search-api" />
         <module name="xiaolinshu-distributed-id-generator-biz" />
-        <module name="xiaolinshu-user-biz" />
         <module name="xiaolinshu-spring-boot-starter-biz-context" />
         <module name="xiaolinshu-spring-boot-starter-biz-operationlog" />
-        <module name="xiaolinshu-kv-biz" />
         <module name="xiaolinshu-user-relation-api" />
-        <module name="xiaolinshu-spring-boot-starter-jackson" />
         <module name="xiaolinshu-search-biz" />
-        <module name="xiaolinshu-kv-api" />
-        <module name="xiaolinshu-oss-biz" />
+        <module name="xiaolinshu-comment-api" />
         <module name="xiaolinshu-auth" />
         <module name="xiaolinshu-user-relation-biz" />
+        <module name="xiaolinshu-comment-biz" />
+        <module name="xiaolinshu-note-api" />
+        <module name="xiaolinshu-gateway" />
+        <module name="xiaolinshu-note-biz" />
+        <module name="xiaolinshu-user-api" />
+        <module name="xiaolinshu-user-biz" />
+        <module name="xiaolinshu-kv-biz" />
+        <module name="xiaolinshu-spring-boot-starter-jackson" />
+        <module name="xiaolinshu-kv-api" />
+        <module name="xiaolinshu-oss-biz" />
         <module name="xiaolinshu-common" />
         <module name="xiaolinshu-oss-api" />
       </profile>

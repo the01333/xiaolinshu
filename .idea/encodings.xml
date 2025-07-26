@@ -5,6 +5,12 @@
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-auth/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-auth/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-comment/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-comment/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-comment/xiaolinshu-comment-api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-comment/xiaolinshu-comment-api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-comment/xiaolinshu-comment-biz/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/xiaolinshu-comment/xiaolinshu-comment-biz/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-count/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-count/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/xiaolinshu-count/xiaolinshu-count-api/src/main/java" charset="UTF-8" />
