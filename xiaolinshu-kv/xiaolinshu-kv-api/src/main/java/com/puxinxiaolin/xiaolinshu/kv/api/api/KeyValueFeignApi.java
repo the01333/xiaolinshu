@@ -3,6 +3,7 @@ package com.puxinxiaolin.xiaolinshu.kv.api.api;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.kv.api.constant.ApiConstants;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.AddNoteContentReqDTO;
+import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.BatchAddCommentContentReqDTO;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.DeleteNoteContentReqDTO;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.FindNoteContentReqDTO;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.rsp.FindNoteContentRspDTO;
@@ -19,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface KeyValueFeignApi {
 
     String PREFIX = "/kv";
+
+    @PostMapping(PREFIX + "/comment/content/batchAdd")
+    Response<?> batchAddCommentContent(@RequestBody BatchAddCommentContentReqDTO request);
 
     @PostMapping(PREFIX + "/note/content/add")
     Response<?> addNoteContent(@RequestBody AddNoteContentReqDTO request);

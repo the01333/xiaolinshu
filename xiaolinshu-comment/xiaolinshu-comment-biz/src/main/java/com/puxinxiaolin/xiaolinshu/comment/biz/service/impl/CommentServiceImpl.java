@@ -8,6 +8,7 @@ import com.puxinxiaolin.xiaolinshu.comment.biz.constant.MQConstants;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.PublishCommentMqDTO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.vo.PublishCommentReqVO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.retry.SendMqRetryHelper;
+import com.puxinxiaolin.xiaolinshu.comment.biz.rpc.DistributedIdGeneratorRpcService;
 import com.puxinxiaolin.xiaolinshu.comment.biz.service.CommentService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,8 @@ import java.time.LocalDateTime;
 public class CommentServiceImpl implements CommentService {
     @Resource
     private SendMqRetryHelper sendMqRetryHelper;
+    @Resource
+    private DistributedIdGeneratorRpcService distributedIdGeneratorRpcService;
 
     /**
      * 发布评论（由于该接口是高并发接口, 这里发 MQ 来实现异步写）
@@ -37,10 +40,12 @@ public class CommentServiceImpl implements CommentService {
                 "评论正文和图片不能同时为空");
 
         Long creatorId = LoginUserContextHolder.getUserId();
+        String commentId = distributedIdGeneratorRpcService.generateCommentId();
         PublishCommentMqDTO mqDTO = PublishCommentMqDTO.builder()
                 .noteId(request.getNoteId())
                 .content(content)
                 .imageUrl(imageUrl)
+                .commentId(Long.valueOf(commentId))
                 .replyCommentId(request.getReplyCommentId())
                 .createTime(LocalDateTime.now())
                 .creatorId(creatorId)

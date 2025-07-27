@@ -78,7 +78,7 @@ public class SendMqRetryHelper {
                     return null;
                 });
             } catch (RuntimeException e) {
-                // 所有重试都失败了才会回调
+                // 所有重试都失败了才会回调（Retry 框架已经处理好了）
                 fallback(e, topic, message.getPayload());
             }
         });

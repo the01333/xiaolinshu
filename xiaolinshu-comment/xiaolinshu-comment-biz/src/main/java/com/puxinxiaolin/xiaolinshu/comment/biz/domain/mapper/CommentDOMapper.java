@@ -1,8 +1,29 @@
 package com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper;
 
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.dataobject.CommentDO;
+import com.puxinxiaolin.xiaolinshu.comment.biz.model.bo.CommentBO;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface CommentDOMapper {
+
+    /**
+     * 批量插入评论
+     *
+     * @param comments
+     * @return
+     */
+    int batchInsert(@Param("comments") List<CommentBO> comments);
+
+    /**
+     * 根据评论 ID 批量查询
+     *
+     * @param commentIds
+     * @return
+     */
+    List<CommentDO> selectByCommentIds(@Param("commentIds") List<Long> commentIds);
+
     int deleteByPrimaryKey(Long id);
 
     int insert(CommentDO record);

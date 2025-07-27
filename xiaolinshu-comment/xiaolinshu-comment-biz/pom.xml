@@ -10,9 +10,9 @@
     <groupId>com.puxinxiaolin.xiaolinshu.comment</groupId>
     <artifactId>xiaolinshu-comment-biz</artifactId>
     <description>评论服务业务层</description>
-    
+
     <packaging>jar</packaging>
-    
+
     <dependencies>
         <dependency>
             <groupId>com.puxinxiaolin</groupId>
@@ -25,6 +25,15 @@
         <dependency>
             <groupId>com.puxinxiaolin</groupId>
             <artifactId>xiaolinshu-spring-boot-starter-jackson</artifactId>
+        </dependency>
+        <!-- 走 RPC -->
+        <dependency>
+            <groupId>com.puxinxiaolin</groupId>
+            <artifactId>xiaolinshu-distributed-id-generator-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.puxinxiaolin</groupId>
+            <artifactId>xiaolinshu-kv-api</artifactId>
         </dependency>
 
         <dependency>
@@ -63,6 +72,13 @@
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Rocket MQ 客户端（支持批量） -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-client</artifactId>
+        </dependency>
+
+
         <!-- Spring Retry 重试框架 - 自定义重试 确保 MQ 消息发送的可靠性   -->
         <dependency>
             <groupId>org.springframework.retry</groupId>
@@ -75,7 +91,7 @@
         </dependency>
 
     </dependencies>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -88,5 +104,5 @@
             </plugin>
         </plugins>
     </build>
-    
+
 </project>
