@@ -1,146 +1,140 @@
 package com.puxinxiaolin.xiaolinshu.note.biz.consumer;
 
+import cn.hutool.core.collection.CollUtil;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.note.biz.constant.MQConstants;
 import com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO;
 import com.puxinxiaolin.xiaolinshu.note.biz.domain.mapper.NoteLikeDOMapper;
 import com.puxinxiaolin.xiaolinshu.note.biz.model.dto.LikeUnLikeNoteMqDTO;
+import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
+import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
+import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.spring.annotation.ConsumeMode;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
+import java.awt.*;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-@RocketMQMessageListener(
-        topic = MQConstants.TOPIC_LIKE_OR_UNLIKE,
-        consumerGroup = "xiaolinshu_group_" + MQConstants.TOPIC_LIKE_OR_UNLIKE,
-        consumeMode = ConsumeMode.ORDERLY
-)
-public class LikeUnLikeNoteConsumer implements RocketMQListener<Message> {
+public class LikeUnLikeNoteConsumer {
     @Resource
     private NoteLikeDOMapper noteLikeDOMapper;
     @Resource
-    private RocketMQTemplate rocketMQTemplate;
-    @Resource
     private RateLimiter rateLimiter;
 
-    @Override
-    public void onMessage(Message message) {
-        // 流量削峰: 获取到令牌才往下执行, 否则阻塞
-        rateLimiter.acquire();
+    private DefaultMQPushConsumer consumer;
 
-        // 幂等性: 通过联合唯一索引保证
+    @Value("${rocketmq.name-server}")
+    private String namesrvAddr;
 
-        String bodyJson = new String(message.getBody());
-        String tags = message.getTags();
+    @Bean(name = "LikeUnlikeNoteConsumer")
+    public DefaultMQPushConsumer defaultMQPushConsumer() throws MQClientException {
+        String group = "xiaolinshu_group_" + MQConstants.TOPIC_LIKE_OR_UNLIKE;
 
-        log.info("==> LikeUnlikeNoteConsumer 消费了消息 {}, tags: {}", bodyJson, tags);
+        consumer = new DefaultMQPushConsumer();
 
-        if (Objects.equals(tags, MQConstants.TAG_LIKE)) {
-            handleLikeTagMessage(bodyJson);
-        } else if (Objects.equals(tags, MQConstants.TAG_UNLIKE)) {
-            handleUnlikeTagMessage(bodyJson);
-        }
-    }
+        consumer.setNamesrvAddr(namesrvAddr);
+        consumer.subscribe(MQConstants.TOPIC_LIKE_OR_UNLIKE, "*");
+        consumer.setMessageModel(MessageModel.CLUSTERING);
+        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
+        consumer.setMaxReconsumeTimes(3);
+        consumer.setConsumeMessageBatchMaxSize(30);
+        consumer.setPullInterval(1000);
 
-    /**
-     * 笔记取消点赞
-     *
-     * @param bodyJson
-     */
-    private void handleUnlikeTagMessage(String bodyJson) {
-        LikeUnLikeNoteMqDTO mqDTO = JsonUtils.parseObject(bodyJson, LikeUnLikeNoteMqDTO.class);
-        if (mqDTO == null) {
-            return;
-        }
+        consumer.registerMessageListener((MessageListenerOrderly) (msgs, context) -> {
+            log.info("==> 【笔记点赞、取消点赞】本批次消息大小: {}", msgs.size());
 
-        Long userId = mqDTO.getUserId();
-        Long noteId = mqDTO.getNoteId();
-        Integer type = mqDTO.getType();
-        LocalDateTime createTime = mqDTO.getCreateTime();
-        NoteLikeDO noteLikeDO = NoteLikeDO.builder()
-                .userId(userId)
-                .noteId(noteId)
-                .status(type)
-                .createTime(createTime)
-                .build();
+            try {
+                // 令牌桶限流
+                rateLimiter.acquire();
 
-        int count = noteLikeDOMapper.update2UnlikeByUserIdAndNoteId(noteLikeDO);
-        if (count == 0) {
-            return;
-        }
-        
-        // 发送计数 MQ
-        org.springframework.messaging.Message<String> message = MessageBuilder.withPayload(bodyJson)
-                .build();
-        
-        rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_LIKE, message, new SendCallback() {
-            @Override
-            public void onSuccess(SendResult sendResult) {
-                log.info("==> 【计数: 笔记取消点赞】MQ 发送成功, SendResult: {}", sendResult);
-            }
+                // 幂等性: 通过联合唯一索引保证
+                List<LikeUnLikeNoteMqDTO> likeUnLikeNoteMqDTOS = Lists.newArrayList();
+                msgs.forEach(msg -> {
+                    String message = new String(msg.getBody());
+                    
+                    log.info("==> Consumer - Received message: {}", message);
+                    
+                    likeUnLikeNoteMqDTOS.add(JsonUtils.parseObject(message, LikeUnLikeNoteMqDTO.class));
+                });
 
-            @Override
-            public void onException(Throwable throwable) {
-                log.error("==> 【计数: 笔记取消点赞】MQ 发送异常: ", throwable);
-            }
-        });
-    }
+                // 1. 内存级操作合并
+                // 按用户 ID 进行分组
+                Map<Long, List<LikeUnLikeNoteMqDTO>> groupMap = likeUnLikeNoteMqDTOS.stream()
+                        .collect(Collectors.groupingBy(LikeUnLikeNoteMqDTO::getUserId));
+                // 对每个用户的操作按 noteId 二次分组, 并过滤合并
+                List<LikeUnLikeNoteMqDTO> finalOperations = groupMap.values().stream()
+                        .flatMap(userOperations -> {
+                            // Map<noteId, List<MqDTO>>
+                            Map<Long, List<LikeUnLikeNoteMqDTO>> noteGroupMap = userOperations.stream()
+                                    .collect(Collectors.groupingBy(LikeUnLikeNoteMqDTO::getNoteId));
 
-    /**
-     * 笔记点赞
-     *
-     * @param bodyJson
-     */
-    private void handleLikeTagMessage(String bodyJson) {
-        LikeUnLikeNoteMqDTO mqDTO = JsonUtils.parseObject(bodyJson, LikeUnLikeNoteMqDTO.class);
-        if (mqDTO == null) {
-            return;
-        }
+                            return noteGroupMap.values().stream()
+                                    .filter(operations -> {
+                                        int size = operations.size();
+                                        // 偶数次操作, 最终状态抵消, 无需写入; 奇数次操作, 保留最后一次操作
+                                        return size % 2 != 0;
+                                    }).map(ops -> ops.get(ops.size() - 1));
+                        }).toList();
 
-        Long userId = mqDTO.getUserId();
-        Long noteId = mqDTO.getNoteId();
-        Integer type = mqDTO.getType();
-        LocalDateTime createTime = mqDTO.getCreateTime();
-        NoteLikeDO noteLikeDO = NoteLikeDO.builder()
-                .userId(userId)
-                .noteId(noteId)
-                .status(type)
-                .createTime(createTime)
-                .build();
+                // 2. 批量入库
+                if (CollUtil.isNotEmpty(finalOperations)) {
+                    List<NoteLikeDO> noteLikeDOS = finalOperations.stream()
+                            .map(dto -> NoteLikeDO.builder()
+                                    .noteId(dto.getNoteId())
+                                    .userId(dto.getUserId())
+                                    .createTime(dto.getCreateTime())
+                                    .status(dto.getType())
+                                    .build()
+                            ).toList();
+                    
+                    noteLikeDOMapper.batchInsertOrUpdate(noteLikeDOS);
+                }
 
-        int count = noteLikeDOMapper.insertOrUpdate(noteLikeDO);
-        if (count == 0) {
-            return;
-        }
-
-        // 发送计数 MQ
-        org.springframework.messaging.Message<String> message = MessageBuilder.withPayload(bodyJson)
-                .build();
-
-        rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_LIKE, message, new SendCallback() {
-            @Override
-            public void onSuccess(SendResult sendResult) {
-                log.info("==> 【计数: 笔记点赞】MQ 发送成功, SendResult: {}", sendResult);
-            }
-
-            @Override
-            public void onException(Throwable throwable) {
-                log.error("==> 【计数: 笔记点赞】MQ 发送异常: ", throwable);
+                return ConsumeOrderlyStatus.SUCCESS;
+            } catch (Exception e) {
+                log.error("", e);
+                // 这样 RocketMQ 会暂停当前队列的消费一段时间, 再重试
+                return ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT;
             }
         });
+
+        consumer.start();
+        return consumer;
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (consumer != null) {
+            try {
+                consumer.shutdown();
+            } catch (Exception e) {
+                log.error("", e);
+            }
+        }
     }
 
 }

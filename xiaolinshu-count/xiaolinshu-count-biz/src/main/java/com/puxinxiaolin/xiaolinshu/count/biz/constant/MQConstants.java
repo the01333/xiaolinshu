@@ -3,6 +3,11 @@ package com.puxinxiaolin.xiaolinshu.count.biz.constant;
 public interface MQConstants {
 
     /**
+     * Topic: 计数 - 笔记点赞数
+     */
+    String TOPIC_LIKE_OR_UNLIKE = "LikeUnlikeTopic";
+    
+    /**
      * Topic: 笔记操作（发布、删除）
      */
     String TOPIC_NOTE_OPERATE = "NoteOperateTopic";
