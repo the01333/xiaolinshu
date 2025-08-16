@@ -1,18 +1,18 @@
-package com.puxinxiaolin.xiaolinshu.comment.biz.domain.dataobject;
+package com.puxinxiaolin.xiaolinshu.count.biz.domain.dataobject;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class CommentDO {
-    
+     
     private Long id;
 
     private Long noteId;
@@ -25,7 +25,7 @@ public class CommentDO {
 
     private String imageUrl;
 
-    private Integer level;
+    private Byte level;
 
     private Long replyTotal;
 
@@ -37,15 +37,12 @@ public class CommentDO {
 
     private Long replyUserId;
 
-    private Boolean isTop;
+    private Byte isTop;
 
-    private LocalDateTime createTime;
+    private Date createTime;
 
-    private LocalDateTime updateTime;
+    private Date updateTime;
 
-    /**
-     * 子评论数
-     */
     private Long childCommentTotal;
 
 }

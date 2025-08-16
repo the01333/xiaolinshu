@@ -10,9 +10,9 @@ import com.puxinxiaolin.xiaolinshu.comment.biz.domain.dataobject.CommentDO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.CommentDOMapper;
 import com.puxinxiaolin.xiaolinshu.comment.biz.enums.CommentLevelEnum;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.bo.CommentBO;
+import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.CountPublishCommentMqDTO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.PublishCommentMqDTO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.rpc.KeyValueRpcService;
-import com.puxinxiaolin.xiaolinshu.kv.api.api.KeyValueFeignApi;
 import jakarta.annotation.PreDestroy;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +21,15 @@ import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -40,6 +45,8 @@ public class Comment2DBConsumer {
     private TransactionTemplate transactionTemplate;
     @Resource
     private KeyValueRpcService keyValueRpcService;
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
 
     @Value("${rocketmq.name-server}")
     private String namesrvAddr;
@@ -48,6 +55,12 @@ public class Comment2DBConsumer {
 
     private DefaultMQPushConsumer consumer;
 
+    /**
+     * 手动消费 MQ 消息
+     *
+     * @return
+     * @throws MQClientException
+     */
     @Bean
     public DefaultMQPushConsumer defaultMQPushConsumer() throws MQClientException {
         String consumerGroup = "xiaolinshu_group_" + MQConstants.TOPIC_PUBLISH_COMMENT;
@@ -118,7 +131,7 @@ public class Comment2DBConsumer {
                         commentBO.setIsContentEmpty(false);
                         commentBO.setContent(content);
                     }
-                    
+
                     Long replyCommentId = mqDTO.getReplyCommentId();
                     if (Objects.nonNull(replyCommentId)) {
                         CommentDO replyCommentDO = commentIdAndCommentDOMap.get(replyCommentId);
@@ -128,21 +141,20 @@ public class Comment2DBConsumer {
                             commentBO.setReplyCommentId(replyCommentId);
                             commentBO.setParentId(replyCommentDO.getId());
                             if (Objects.equals(replyCommentDO.getLevel(), CommentLevelEnum.TWO.getCode())) {
-                                 commentBO.setParentId(replyCommentDO.getParentId());
+                                commentBO.setParentId(replyCommentDO.getParentId());
                             }
                             commentBO.setReplyUserId(replyCommentDO.getUserId());
                         }
                     }
-                    
+
                     commentBOS.add(commentBO);
                 }
 
                 log.info("## 清洗后的 CommentBOS: {}", JsonUtils.toJsonString(commentBOS));
 
-                // TODO [YCcLin 2025/7/27]: 后续处理
-                transactionTemplate.execute(status -> {
+                Integer insertedRows = transactionTemplate.execute(status -> {
                     try {
-                        commentDOMapper.batchInsert(commentBOS);
+                        int count = commentDOMapper.batchInsert(commentBOS);
 
                         // 过滤评论内容不为空的 BO
                         List<CommentBO> existedCommentBO = commentBOS.stream()
@@ -152,14 +164,40 @@ public class Comment2DBConsumer {
                             keyValueRpcService.batchSaveCommentContent(existedCommentBO);
                         }
 
-                        return true;
+                        return count;
                     } catch (Exception e) {
                         status.setRollbackOnly();
                         log.error("", e);
-                        
+
                         throw e;
                     }
                 });
+
+                if (Objects.nonNull(insertedRows) && insertedRows > 0) {
+                    List<CountPublishCommentMqDTO> countPublishCommentMqDTOS = commentBOS.stream()
+                            .map(commentBO -> CountPublishCommentMqDTO.builder()
+                                    .noteId(commentBO.getNoteId())
+                                    .commentId(commentBO.getId())
+                                    .level(commentBO.getLevel())
+                                    .parentId(commentBO.getParentId())
+                                    .build()
+                            ).toList();
+
+                    Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(countPublishCommentMqDTOS))
+                            .build();
+
+                    rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_COMMENT, message, new SendCallback() {
+                        @Override
+                        public void onSuccess(SendResult sendResult) {
+                            log.info("==> 【计数: 评论发布】MQ 发送成功, SendResult: {}", sendResult);
+                        }
+
+                        @Override
+                        public void onException(Throwable e) {
+                            log.error("==> 【计数: 评论发布】MQ 发送异常: ", e);
+                        }
+                    });
+                }
 
                 // 手动 ACK, 告诉 RocketMQ 这批次消息消费成功
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;

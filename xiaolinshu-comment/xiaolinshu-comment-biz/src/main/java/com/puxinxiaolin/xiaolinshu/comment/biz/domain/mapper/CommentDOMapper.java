@@ -2,11 +2,22 @@ package com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper;
 
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.dataobject.CommentDO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.bo.CommentBO;
+import com.puxinxiaolin.xiaolinshu.comment.biz.model.bo.CommentHeatBO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 public interface CommentDOMapper {
+
+    /**
+     * 批量更新热度值
+     *
+     * @param commentIds
+     * @param commentHeatBOS
+     * @return
+     */
+    int batchUpdateHeatByCommentIds(@Param("commentIds") List<Long> commentIds,
+                                    @Param("commentHeatBOS") List<CommentHeatBO> commentHeatBOS);
 
     /**
      * 批量插入评论

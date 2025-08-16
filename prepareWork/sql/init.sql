@@ -298,3 +298,6 @@ CREATE TABLE `t_comment_like`
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT ='评论点赞表';
+
+alter table t_comment add column `child_comment_total` bigint(20) unsigned DEFAULT '0' COMMENT '二级评论总数（只有一级评论才需要统计）';
+ALTER TABLE t_comment ADD COLUMN heat DECIMAL(10, 2) DEFAULT 0 COMMENT '评论热度';
