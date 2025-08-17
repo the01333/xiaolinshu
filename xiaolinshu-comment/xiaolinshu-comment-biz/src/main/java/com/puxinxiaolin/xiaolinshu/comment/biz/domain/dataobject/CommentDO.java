@@ -48,4 +48,9 @@ public class CommentDO {
      */
     private Long childCommentTotal;
 
+    /**
+     * 最早回复的子评论id
+     */
+    private Long firstReplyCommentId;
+    
 }

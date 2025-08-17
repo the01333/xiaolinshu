@@ -10,6 +10,24 @@ import java.util.List;
 public interface CommentDOMapper {
 
     /**
+     * 更新一级评论的 first_reply_comment_id
+     *
+     * @param firstReplyCommentId
+     * @param id
+     * @return
+     */
+    int updateFirstReplyCommentIdByPrimaryKey(@Param("firstReplyCommentId") Long firstReplyCommentId,
+                                              @Param("id") Long id);
+
+    /**
+     * 查询一级评论下最早回复的评论
+     *
+     * @param parentId
+     * @return
+     */
+    CommentDO selectEarliestByParentId(Long parentId);
+
+    /**
      * 批量更新热度值
      *
      * @param commentIds
