@@ -3,6 +3,7 @@ package com.puxinxiaolin.xiaolinshu.kv.biz.controller;
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.BatchAddCommentContentReqDTO;
+import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.BatchFindCommentContentReqDTO;
 import com.puxinxiaolin.xiaolinshu.kv.biz.service.CommentContentService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,12 @@ public class CommentContentController {
     @Resource
     private CommentContentService commentContentService;
 
+    @PostMapping(value = "/comment/content/batchFind")
+    @ApiOperationLog(description = "批量查询评论内容")
+    public Response<?> batchFindCommentContent(@Validated @RequestBody BatchFindCommentContentReqDTO request) {
+        return commentContentService.batchFindCommentContent(request);
+    }
+    
     @PostMapping(value = "/comment/content/batchAdd")
     @ApiOperationLog(description = "批量存储评论内容")
     public Response<?> batchAddCommentContent(@Validated @RequestBody BatchAddCommentContentReqDTO request) {
