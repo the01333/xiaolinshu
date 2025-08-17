@@ -244,7 +244,7 @@
             #{commentId}
         </foreach>
     </update>
-    
+
     <select id="selectEarliestByParentId" resultMap="BaseResultMap" parameterType="map">
         select *
         from t_comment
@@ -253,10 +253,45 @@
         order by create_time
         limit 1;
     </select>
-    
+
     <update id="updateFirstReplyCommentIdByPrimaryKey" parameterType="map">
         update t_comment
         set first_reply_comment_id = #{firstReplyCommentId}
         where id = #{commentId}
     </update>
+
+    <select id="selectPageList" resultMap="BaseResultMap" parameterType="map">
+        select id,
+               user_id,
+               content_uuid,
+               is_content_empty,
+               image_url,
+               like_total,
+               is_top,
+               create_time,
+               child_comment_total,
+               first_reply_comment_id
+        from t_comment
+        where note_id = #{noteId}
+          and level = 1
+        order by heat desc
+        limit #{offset}, #{pageSize}
+    </select>
+
+    <select id="selectTwoLevelCommentByIds" resultMap="BaseResultMap" parameterType="list">
+        select id,
+        user_id,
+        content_uuid,
+        is_content_empty,
+        image_url,
+        like_total,
+        create_time
+        from t_comment
+        where id in
+        <foreach collection="commentIds" close=")" open="(" item="commentId" separator=",">
+            #{commentId}
+        </foreach>
+        <!-- todo: 调用层已经提取出二级评论ID了, 不做 level 判断处理也行 -->
+        and level = 2
+    </select>
 </mapper>
