@@ -2,6 +2,8 @@ package com.puxinxiaolin.xiaolinshu.comment.biz.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.RandomUtil;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -33,6 +35,8 @@ import com.puxinxiaolin.xiaolinshu.user.api.dto.resp.FindUserByIdRspDTO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.Strings;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.data.redis.core.*;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -46,12 +50,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CommentServiceImpl implements CommentService {
     @Resource
-    private SendMqRetryHelper sendMqRetryHelper;
-    @Resource
-    private RedisTemplate<String, Object> redisTemplate;
-    @Resource(name = "taskExecutor")
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
-    @Resource
     private DistributedIdGeneratorRpcService distributedIdGeneratorRpcService;
     @Resource
     private UserRpcService userRpcService;
@@ -61,6 +59,18 @@ public class CommentServiceImpl implements CommentService {
     private NoteCountDOMapper noteCountDOMapper;
     @Resource
     private CommentDOMapper commentDOMapper;
+    @Resource
+    private SendMqRetryHelper sendMqRetryHelper;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
+    @Resource(name = "taskExecutor")
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
+    private static final Cache<Long, String> LOCAL_CACHE = Caffeine.newBuilder()
+            .initialCapacity(10000)
+            .maximumSize(10000)
+            .expireAfterWrite(1, TimeUnit.HOURS)
+            .build();
 
     /**
      * 评论列表分页查询
@@ -118,10 +128,42 @@ public class CommentServiceImpl implements CommentService {
                         .reverseRangeByScore(commentZSetKey, -Double.MAX_VALUE, Double.MAX_VALUE, offset, pageSize);
                 if (CollUtil.isNotEmpty(commentIds)) {
                     List<Object> commentIdList = Lists.newArrayList(commentIds);
+
+                    // 1. 先查本地缓存
+                    // 本地缓存中不存在的评论 ID
+                    List<Long> localCacheExpireCommentIds = Lists.newArrayList();
+                    List<Long> localCacheKeys = commentIdList.stream()
+                            .map(commentId -> Long.valueOf(commentId.toString()))
+                            .toList();
+                    // getAll(param1, param2): 第二个参数是回调函数, 用于处理缓存中不存在的 key
+                    Map<Long, String> commentIdAndDetailJsonMap = LOCAL_CACHE.getAll(localCacheKeys, missingKeys -> {
+                        Map<Long, String> missingData = Maps.newHashMap();
+                        missingKeys.forEach(key -> {
+                            localCacheExpireCommentIds.add(key);
+                            missingData.put(key, "");
+                        });
+
+                        return missingData;
+                    });
+                    
+                    // 说明本地缓存有部分数据, 先加到返参中
+                    if (localCacheExpireCommentIds.size() != commentIdList.size()) {
+                        for (String value : commentIdAndDetailJsonMap.values()) {
+                            if (StringUtils.isBlank(value)) continue;
+                            
+                            FindCommentItemRspVO commentRspVO = JsonUtils.parseObject(value, FindCommentItemRspVO.class);
+                            result.add(commentRspVO);
+                        }
+                    }
+                    // 说明数据都在本地缓存, 没有缺失值
+                    if (localCacheExpireCommentIds.isEmpty()) {
+                        return PageResponse.success(result, pageNo, count, pageSize);
+                    }
+
+                    // 2. 构建 MGET 的 keys, 从 redis 拿评论详情
                     List<String> commentIdKeys = commentIdList.stream()
                             .map(RedisKeyConstants::buildCommentDetailKey)
                             .toList();
-                    // 从 redis 拿评论详情
                     List<Object> commentJsonList = redisTemplate.opsForValue()
                             .multiGet(commentIdKeys);
 
@@ -149,107 +191,19 @@ public class CommentServiceImpl implements CommentService {
                 result = result.stream()
                         .sorted(Comparator.comparing(FindCommentItemRspVO::getHeat).reversed())
                         .collect(Collectors.toList());
-                
+
+                // 添加到本地缓存 
+                syncCommentDetail2LocalCache(result);
+
                 return PageResponse.success(result, pageNo, count, pageSize);
             }
 
-            // 一级评论
             List<CommentDO> oneLevelCommentDOS = commentDOMapper.selectPageList(noteId, offset, pageSize);
-            // 最早回复的二级评论 id
-            List<Long> twoLevelCommentIds = oneLevelCommentDOS.stream()
-                    .map(CommentDO::getFirstReplyCommentId)
-                    .filter(id -> id != 0)
-                    .toList();
+            // 获取全部评论数据, 并将评论详情同步到 Redis 中
+            getCommentDataAndSync2Redis(oneLevelCommentDOS, noteId, result);
 
-            Map<Long, CommentDO> commentIdAndDOMap = null;
-            // 二级评论
-            List<CommentDO> twoLevelCommentDOS = null;
-            if (CollUtil.isNotEmpty(twoLevelCommentIds)) {
-                twoLevelCommentDOS = commentDOMapper.selectTwoLevelCommentByIds(twoLevelCommentIds);
-
-                commentIdAndDOMap = twoLevelCommentDOS.stream()
-                        .collect(Collectors.toMap(CommentDO::getId, commentDO -> commentDO));
-            }
-
-            // 调用 KV 服务需要的入参
-            List<FindCommentContentReqDTO> kvCommentContentReqDTOS = Lists.newArrayList();
-            // 调用用户服务的入参
-            List<Long> userIds = Lists.newArrayList();
-
-            // 将一级评论和二级评论合并到一起
-            List<CommentDO> allCommentDOS = Lists.newArrayList();
-            CollUtil.addAll(allCommentDOS, oneLevelCommentDOS);
-            CollUtil.addAll(allCommentDOS, twoLevelCommentDOS);
-
-            allCommentDOS.forEach(commentDO -> {
-                Boolean isContentEmpty = commentDO.getIsContentEmpty();
-                if (!isContentEmpty) {
-                    FindCommentContentReqDTO kvCommentContentReqDTO = FindCommentContentReqDTO.builder()
-                            .contentId(commentDO.getContentUuid())
-                            .yearMonth(DateConstants.Y_M.format(commentDO.getCreateTime()))
-                            .build();
-
-                    kvCommentContentReqDTOS.add(kvCommentContentReqDTO);
-                }
-
-                userIds.add(commentDO.getUserId());
-            });
-
-            // 走 RPC
-            // kv - rpc
-            List<FindCommentContentRspDTO> findCommentContentRspDTOS = keyValueRpcService.batchFindCommentContent(noteId, kvCommentContentReqDTOS);
-            Map<String, String> commentUuidAndContentMap = null;
-            if (CollUtil.isNotEmpty(findCommentContentRspDTOS)) {
-                commentUuidAndContentMap = findCommentContentRspDTOS.stream()
-                        .collect(Collectors.toMap(FindCommentContentRspDTO::getContentId, FindCommentContentRspDTO::getContent));
-            }
-
-            // user - rpc
-            List<FindUserByIdRspDTO> findUserByIdRspDTOS = userRpcService.findByIds(userIds);
-            Map<Long, FindUserByIdRspDTO> userIdAndDTOMap = null;
-            if (CollUtil.isNotEmpty(findUserByIdRspDTOS)) {
-                userIdAndDTOMap = findUserByIdRspDTOS.stream()
-                        .collect(Collectors.toMap(FindUserByIdRspDTO::getId, dto -> dto));
-            }
-
-            // 拼接所有参数
-            // 1. 先拼接一级评论
-            for (CommentDO oneLevelCommentDO : oneLevelCommentDOS) {
-                Long userId = oneLevelCommentDO.getUserId();
-                FindCommentItemRspVO oneLevelCommentItemRspVO = FindCommentItemRspVO.builder()
-                        .userId(userId)
-                        .commentId(oneLevelCommentDO.getId())
-                        .imageUrl(oneLevelCommentDO.getImageUrl())
-                        .likeTotal(oneLevelCommentDO.getLikeTotal())
-                        .childCommentTotal(oneLevelCommentDO.getChildCommentTotal())
-                        .createTime(DateUtils.formatRelativeTime(oneLevelCommentDO.getCreateTime()))
-                        .build();
-
-                setUserInfo(oneLevelCommentItemRspVO, userIdAndDTOMap, userId, commentIdAndDOMap);
-                setCommentContent(oneLevelCommentItemRspVO, commentUuidAndContentMap, oneLevelCommentDO);
-
-                // 2. 拼接二级评论
-                Long firstReplyCommentId = oneLevelCommentDO.getFirstReplyCommentId();
-                if (CollUtil.isNotEmpty(commentIdAndDOMap)) {
-                    CommentDO twoLevelCommentDO = commentIdAndDOMap.get(firstReplyCommentId);
-                    if (Objects.nonNull(twoLevelCommentDO)) {
-                        Long twoLevelCommentUserId = twoLevelCommentDO.getUserId();
-                        FindCommentItemRspVO twoLevelCommentItemRspVO = FindCommentItemRspVO.builder()
-                                .userId(twoLevelCommentUserId)
-                                .commentId(twoLevelCommentDO.getId())
-                                .imageUrl(twoLevelCommentDO.getImageUrl())
-                                .likeTotal(twoLevelCommentDO.getLikeTotal())
-                                .createTime(DateUtils.formatRelativeTime(twoLevelCommentDO.getCreateTime()))
-                                .build();
-
-                        setUserInfo(twoLevelCommentItemRspVO, userIdAndDTOMap, twoLevelCommentUserId, commentIdAndDOMap);
-                        oneLevelCommentItemRspVO.setFirstReplyComment(twoLevelCommentItemRspVO);
-                        setCommentContent(twoLevelCommentItemRspVO, commentUuidAndContentMap, twoLevelCommentDO);
-                    }
-                }
-
-                result.add(oneLevelCommentItemRspVO);
-            }
+            // 添加到本地缓存
+            syncCommentDetail2LocalCache(result);
         }
         return PageResponse.success(result, pageNo, count, pageSize);
     }
@@ -284,6 +238,24 @@ public class CommentServiceImpl implements CommentService {
         sendMqRetryHelper.asyncSend(MQConstants.TOPIC_PUBLISH_COMMENT, JsonUtils.toJsonString(mqDTO));
 
         return Response.success();
+    }
+
+    /**
+     * 同步评论详情到本地缓存
+     *
+     * @param result
+     */
+    private void syncCommentDetail2LocalCache(List<FindCommentItemRspVO> result) {
+        // 异步批量写
+        threadPoolTaskExecutor.submit(() -> {
+            Map<Long, String> localCacheData = Maps.newHashMap();
+            result.forEach(vo -> {
+                Long commentId = vo.getCommentId();
+                localCacheData.put(commentId, JsonUtils.toJsonString(vo));
+            });
+
+            LOCAL_CACHE.putAll(localCacheData);
+        });
     }
 
     /**
@@ -402,14 +374,14 @@ public class CommentServiceImpl implements CommentService {
                 redisTemplate.executePipelined((RedisCallback<?>) connection -> {
                     for (Map.Entry<String, String> entry : data.entrySet()) {
                         int randomExpire = RandomUtil.randomInt(60 * 60 * 5);
-                        
+
                         connection.setEx(
                                 redisTemplate.getStringSerializer().serialize(entry.getKey()),
                                 randomExpire,
                                 redisTemplate.getStringSerializer().serialize(entry.getValue())
                         );
                     }
-                    
+
                     return null;
                 });
             });
