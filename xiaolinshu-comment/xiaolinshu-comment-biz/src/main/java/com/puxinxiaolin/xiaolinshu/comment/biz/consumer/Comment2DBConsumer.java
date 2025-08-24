@@ -1,11 +1,13 @@
 package com.puxinxiaolin.xiaolinshu.comment.biz.consumer;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.nacos.shaded.com.google.common.util.concurrent.RateLimiter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.comment.biz.constant.MQConstants;
+import com.puxinxiaolin.xiaolinshu.comment.biz.constant.RedisKeyConstants;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.dataobject.CommentDO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.CommentDOMapper;
 import com.puxinxiaolin.xiaolinshu.comment.biz.enums.CommentLevelEnum;
@@ -28,8 +30,12 @@ import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -47,6 +53,8 @@ public class Comment2DBConsumer {
     private KeyValueRpcService keyValueRpcService;
     @Resource
     private RocketMQTemplate rocketMQTemplate;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Value("${rocketmq.name-server}")
     private String namesrvAddr;
@@ -68,7 +76,7 @@ public class Comment2DBConsumer {
         consumer = new DefaultMQPushConsumer(consumerGroup);
         consumer.setNamesrvAddr(namesrvAddr);
         consumer.subscribe(MQConstants.TOPIC_PUBLISH_COMMENT, "*");
-        // 设置消费者消费消息的起始位置, 如果队列中没有消息, 则从最新的消息开始消费。
+        // 设置消费者消费消息的起始位置, 如果队列中没有消息, 则从最新的消息开始消费
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
         consumer.setMessageModel(MessageModel.CLUSTERING);
         consumer.setConsumeMessageBatchMaxSize(30);
@@ -186,6 +194,9 @@ public class Comment2DBConsumer {
                     Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(countPublishCommentMqDTOS))
                             .build();
 
+                    // 同步一级评论到 redis 热点评论 ZSET 中
+                    syncOneLevelComment2RedisZSet(commentBOS);
+
                     rocketMQTemplate.asyncSend(MQConstants.TOPIC_COUNT_NOTE_COMMENT, message, new SendCallback() {
                         @Override
                         public void onSuccess(SendResult sendResult) {
@@ -211,6 +222,36 @@ public class Comment2DBConsumer {
 
         consumer.start();
         return consumer;
+    }
+
+    /**
+     * 同步一级评论到 redis 热点评论 ZSET 中
+     *
+     * @param commentBOS
+     */
+    private void syncOneLevelComment2RedisZSet(List<CommentBO> commentBOS) {
+        // 过滤出一级评论, 并按 noteId 进行分组
+        Map<Long, List<CommentBO>> noteIdAndBOListMap = commentBOS.stream()
+                .filter(commentBO -> Objects.equals(commentBO.getLevel(), CommentLevelEnum.ONE.getCode()))
+                .collect(Collectors.groupingBy(CommentBO::getNoteId));
+        
+        noteIdAndBOListMap.forEach((noteId, commentBOList) -> {
+            String key = RedisKeyConstants.buildCommentListKey(noteId);
+
+            DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+            script.setResultType(Long.class);
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/add_hot_comments.lua")));
+
+            List<Object> args = Lists.newArrayList();
+            commentBOList.forEach(commentBO -> {
+                args.add(commentBO.getId());
+                // 新增的评论热度值肯定为 0
+                args.add(0);
+            });
+            
+            // 走 lua 脚本
+            redisTemplate.execute(script, Collections.singletonList(key), args.toArray());
+        });
     }
 
     @PreDestroy
