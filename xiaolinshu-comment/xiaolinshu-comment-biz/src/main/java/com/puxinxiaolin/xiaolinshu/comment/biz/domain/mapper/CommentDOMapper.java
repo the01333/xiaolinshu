@@ -10,6 +10,14 @@ import java.util.List;
 public interface CommentDOMapper {
 
     /**
+     * 查询热门评论
+     *
+     * @param noteId
+     * @return
+     */
+    List<CommentDO> selectHeatComments(Long noteId);
+
+    /**
      * 批量查询二级评论
      *
      * @param commentIds

@@ -52,5 +52,10 @@ public class CommentDO {
      * 最早回复的子评论id
      */
     private Long firstReplyCommentId;
+
+    /**
+     * 热度值
+     */
+    private Double heat;
     
 }
