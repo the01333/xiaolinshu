@@ -5,6 +5,7 @@ import com.alibaba.nacos.shaded.com.google.common.collect.Lists;
 import com.github.phantomthief.collection.BufferTrigger;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.count.biz.constant.MQConstants;
+import com.puxinxiaolin.xiaolinshu.count.biz.constant.RedisKeyConstants;
 import com.puxinxiaolin.xiaolinshu.count.biz.domain.mapper.CommentDOMapper;
 import com.puxinxiaolin.xiaolinshu.count.biz.enums.CommentLevelEnum;
 import com.puxinxiaolin.xiaolinshu.count.biz.model.dto.CountPublishCommentMqDTO;
@@ -15,6 +16,7 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
@@ -36,6 +38,8 @@ public class CountNoteChildCommentConsumer implements RocketMQListener<String> {
     private CommentDOMapper commentDOMapper;
     @Resource
     private RocketMQTemplate rocketMQTemplate;
+    @Resource
+    private RedisTemplate<String, Object> redisTemplate;
     
     // 聚合处理
     private BufferTrigger<String> bufferTrigger = BufferTrigger.<String>batchBlocking()
@@ -80,6 +84,14 @@ public class CountNoteChildCommentConsumer implements RocketMQListener<String> {
             // 评论数
             int count = CollUtil.size(entry.getValue());
 
+            // 更新 redis 中的评论计数数据
+            String key = RedisKeyConstants.buildCountCommentKey(parentId);
+            Boolean hasKey = redisTemplate.hasKey(key);
+            if (hasKey) {
+                redisTemplate.opsForHash()
+                        .increment(key, RedisKeyConstants.FIELD_CHILD_COMMENT_TOTAL, count);
+            }
+            
             // 更新一级评论的下级评论总数，进行累加操作
             commentDOMapper.updateChildCommentTotal(parentId, count);
         }

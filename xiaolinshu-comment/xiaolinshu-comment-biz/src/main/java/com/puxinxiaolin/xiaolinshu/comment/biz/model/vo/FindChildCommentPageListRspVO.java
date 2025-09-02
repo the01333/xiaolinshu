@@ -15,25 +15,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class FindChildCommentPageListRspVO {
-    
+
     private Long commentId;
-    
+
     private Long userId;
-    
+
     private String avatar;
-    
+
     private String nickname;
-    
+
     private String content;
-    
+
     private String imageUrl;
-    
+
     private String createTime;
-    
+
     private Long likeTotal;
-    
+
     private String replyUserName;
-    
+
     private Long replyUserId;
-    
+
 }

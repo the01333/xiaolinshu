@@ -3,6 +3,26 @@ package com.puxinxiaolin.xiaolinshu.comment.biz.constant;
 public class RedisKeyConstants {
 
     /**
+     * Key 前缀：二级评论分页 ZSET
+     */
+    private static final String CHILD_COMMENT_LIST_KEY_PREFIX = "comment:childList:";
+    
+    /**
+     * 评论维度计数 Key 前缀
+     */
+    private static final String COUNT_COMMENT_KEY_PREFIX = "count:comment:";
+
+    /**
+     * Hash Field: 子评论总数
+     */
+    public static final String FIELD_CHILD_COMMENT_TOTAL = "childCommentTotal";
+
+    /**
+     * Hash Field: 点赞总数
+     */
+    public static final String FIELD_LIKE_TOTAL = "likeTotal";
+    
+    /**
      * Key 前缀: 评论详情 JSON
      */
     private static final String COMMENT_DETAIL_KEY_PREFIX  = "comment:detail:";
@@ -27,6 +47,14 @@ public class RedisKeyConstants {
      */
     private static final String HAVE_FIRST_REPLY_COMMENT_KEY_PREFIX = "comment:havaFirstReplyCommentId:";
 
+    public static String buildChildCommentListKey(Long commentId) {
+        return CHILD_COMMENT_LIST_KEY_PREFIX + commentId;
+    }
+    
+    public static String buildCountCommentKey(Long commentId) {
+        return COUNT_COMMENT_KEY_PREFIX + commentId;
+    }
+    
     public static String buildCommentDetailKey(Object commentId) {
         return COMMENT_DETAIL_KEY_PREFIX + commentId;
     }

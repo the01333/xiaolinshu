@@ -10,6 +10,25 @@ import java.util.List;
 public interface CommentDOMapper {
 
     /**
+     * 查询子评论
+     *
+     * @param parentId
+     * @param limit
+     * @return
+     */
+    List<CommentDO> selectChildCommentsByParentIdAndLimit(@Param("parentId") Long parentId,
+                                                          @Param("limit") int limit);
+
+    /**
+     * 批量查询计数数据
+     *
+     * @param commentIds
+     * @return
+     */
+    List<CommentDO> selectCommentCountByIds(@Param("commentIds") List<Long> commentIds);
+
+
+    /**
      * 查询二级评论分页数据
      *
      * @param parentId
