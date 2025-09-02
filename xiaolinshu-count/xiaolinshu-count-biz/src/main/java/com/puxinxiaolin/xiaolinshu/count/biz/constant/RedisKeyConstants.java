@@ -1,6 +1,9 @@
 package com.puxinxiaolin.xiaolinshu.count.biz.constant;
 
 public class RedisKeyConstants {
+
+    // Hash Field: 笔记评论总数
+    public static final String FIELD_COMMENT_TOTAL = "commentTotal";
     
     // 评论维度计数 Key 前缀
     private static final String COUNT_COMMENT_KEY_PREFIX = "count:comment:";
