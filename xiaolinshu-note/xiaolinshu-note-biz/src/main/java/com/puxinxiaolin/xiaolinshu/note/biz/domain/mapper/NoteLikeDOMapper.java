@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface NoteLikeDOMapper {
 
+    int batchInsertOrUpdate(@Param("noteLikeDOS") List<NoteLikeDO> noteLikeDOS);
+
     int update2UnlikeByUserIdAndNoteId(NoteLikeDO noteLikeDO);
     
     int insertOrUpdate(NoteLikeDO noteLikeDO);

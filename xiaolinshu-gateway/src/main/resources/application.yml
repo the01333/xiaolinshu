@@ -44,6 +44,12 @@ spring:
             - Path=/relation/**
           filters:
             - StripPrefix=1
+        - id: comment
+          uri: lb://xiaolinshu-comment
+          predicates:
+            - Path=/comment/**
+          filters:
+            - StripPrefix=1
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:

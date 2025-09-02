@@ -20,6 +20,14 @@
         </dependency>
         <dependency>
             <groupId>com.puxinxiaolin</groupId>
+            <artifactId>xiaolinshu-spring-boot-starter-biz-operationlog</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.puxinxiaolin</groupId>
+            <artifactId>xiaolinshu-spring-boot-starter-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.puxinxiaolin</groupId>
             <artifactId>xiaolinshu-kv-api</artifactId>
         </dependency>
 

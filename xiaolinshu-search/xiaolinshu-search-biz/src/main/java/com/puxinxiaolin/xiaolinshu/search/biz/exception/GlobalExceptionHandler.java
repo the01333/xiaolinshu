@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public Response<Object> handleOtherException(HttpServletRequest request, Exception ex) {
         log.error("{} request error", request.getRequestURI(), ex);
-        return Response.fail(ResponseCodeEnum.SYSTEM_ERROR.getErrorCode(), ResponseCodeEnum.SYSTEM_ERROR.getErrorMessage());
+        return Response.fail(ResponseCodeEnum.SYSTEM_ERROR);
     }
 
 }

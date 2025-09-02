@@ -117,7 +117,7 @@
           and status = 1
         limit 1
     </select>
-  
+
     <select id="selectLikedByUserIdAndLimit" resultMap="BaseResultMap" parameterType="map">
         select *
         from t_note_like
@@ -126,15 +126,16 @@
         order by create_time desc
         limit #{limit}
     </select>
-    
+
     <insert id="insertOrUpdate" parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
         insert into t_note_like(user_id, note_id, create_time, status)
         values (#{userId}, #{noteId}, #{createTime}, #{status})
         on duplicate key update create_time = #{createTime},
                                 status      = #{status}
     </insert>
-    
-    <update id="update2UnlikeByUserIdAndNoteId" parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
+
+    <update id="update2UnlikeByUserIdAndNoteId"
+            parameterType="com.puxinxiaolin.xiaolinshu.note.biz.domain.dataobject.NoteLikeDO">
         update t_note_like
         set status      = #{status},
             create_time = #{createTime}
@@ -142,4 +143,14 @@
           and note_id = #{noteId}
           and status = 1
     </update>
+
+    <insert id="batchInsertOrUpdate" parameterType="list">
+        INSERT INTO t_note_like (user_id, note_id, status, create_time)
+        VALUES
+        <foreach item="item" collection="noteLikeDOS" separator=",">
+            (#{item.userId}, #{item.noteId}, #{item.status}, #{item.createTime})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        status = VALUES(status)
+    </insert>
 </mapper>
