@@ -3,6 +3,16 @@ package com.puxinxiaolin.xiaolinshu.comment.biz.constant;
 public interface MQConstants {
 
     /**
+     * Topic: 评论点赞、取消点赞共用一个 Topic
+     */
+    String TOPIC_COMMENT_LIKE_OR_UNLIKE = "CommentLikeUnlikeTopic";
+    
+    /**
+     * Tag 标签: 点赞
+     */
+    String TAG_LIKE = "Like";
+    
+    /**
      * Topic: 评论热度值更新
      */
     String TOPIC_COMMENT_HEAT_UPDATE = "CommentHeatUpdateTopic";

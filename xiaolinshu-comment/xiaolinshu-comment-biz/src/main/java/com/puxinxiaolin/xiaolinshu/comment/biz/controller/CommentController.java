@@ -21,6 +21,12 @@ public class CommentController {
     @Resource
     private CommentService commentService;
 
+    @PostMapping("/like")
+    @ApiOperationLog(description = "评论点赞")
+    public Response<?> likeComment(@Validated @RequestBody LikeCommentReqVO request) {
+        return commentService.likeComment(request);
+    }
+    
     @PostMapping("/child/list")
     @ApiOperationLog(description = "二级评论分页查询")
     public PageResponse<FindChildCommentPageListRspVO> findChildCommentPageList(@Validated @RequestBody FindChildCommentPageListReqVO request) {
