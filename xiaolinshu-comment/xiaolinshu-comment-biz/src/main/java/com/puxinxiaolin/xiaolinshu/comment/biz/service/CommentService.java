@@ -9,6 +9,14 @@ import java.util.List;
 public interface CommentService {
 
     /**
+     * 评论点赞
+     *
+     * @param request
+     * @return
+     */
+    Response<?> likeComment(LikeCommentReqVO request);
+
+    /**
      * 二级评论分页查询
      *
      * @param request

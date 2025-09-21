@@ -83,4 +83,37 @@
             create_time = #{createTime,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=BIGINT}
     </update>
+
+    <select id="selectCountByUserIdAndCommentId" resultType="int" parameterType="map">
+        select count(1)
+        from t_comment_like
+        where user_id = #{userId}
+          and comment_id = #{commentId}
+        limit 1
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap" parameterType="map">
+        select comment_id
+        from t_comment_like
+        where user_id = #{userId}
+    </select>
+
+    <delete id="batchInsert" parameterType="list">
+        insert into t_comment_like (comment_id, user_id, create_time)
+        values
+        <foreach collection="likes" item="like" separator=",">
+            (#{like.commentId}, #{like.userId}, #{like.createTime})
+        </foreach>
+        <!-- 确保了有重复点赞记录时, 不会抛出异常, 从而导致批次消息一直被重复消费 -->
+        on duplicate key update id=id
+    </delete>
+
+    <delete id="batchDelete" parameterType="list">
+        delete
+        from t_comment_like
+        where (comment_id, user_id) in
+        <foreach collection="unlikes" item="unlike" separator="," close=")" open="(">
+            (#{unlike.commentId}, #{unlike.userId})
+        </foreach>
+    </delete>
 </mapper>

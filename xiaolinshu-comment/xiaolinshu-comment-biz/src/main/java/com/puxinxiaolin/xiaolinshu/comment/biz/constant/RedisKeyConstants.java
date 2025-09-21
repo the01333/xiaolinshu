@@ -3,6 +3,11 @@ package com.puxinxiaolin.xiaolinshu.comment.biz.constant;
 public class RedisKeyConstants {
 
     /**
+     * Key 前缀：布隆过滤器 - 用户点赞的评论
+     */
+    private static final String BLOOM_COMMENT_LIKES_KEY_PREFIX = "bloom:comment:likes:";
+    
+    /**
      * Key 前缀：二级评论分页 ZSET
      */
     private static final String CHILD_COMMENT_LIST_KEY_PREFIX = "comment:childList:";
@@ -47,6 +52,10 @@ public class RedisKeyConstants {
      */
     private static final String HAVE_FIRST_REPLY_COMMENT_KEY_PREFIX = "comment:havaFirstReplyCommentId:";
 
+    public static String buildBloomCommentLikesKey(Long userId) {
+        return BLOOM_COMMENT_LIKES_KEY_PREFIX + userId;
+    }
+    
     public static String buildChildCommentListKey(Long commentId) {
         return CHILD_COMMENT_LIST_KEY_PREFIX + commentId;
     }
