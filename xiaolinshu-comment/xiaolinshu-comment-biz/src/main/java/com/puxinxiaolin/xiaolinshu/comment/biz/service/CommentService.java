@@ -9,6 +9,14 @@ import java.util.List;
 public interface CommentService {
 
     /**
+     * 取消评论点赞
+     *
+     * @param request
+     * @return
+     */
+    Response<?> unlikeComment(UnLikeCommentReqVO request);
+
+    /**
      * 评论点赞
      *
      * @param request

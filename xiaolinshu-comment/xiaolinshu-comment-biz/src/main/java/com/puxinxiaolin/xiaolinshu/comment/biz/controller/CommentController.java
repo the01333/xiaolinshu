@@ -21,6 +21,12 @@ public class CommentController {
     @Resource
     private CommentService commentService;
 
+    @PostMapping("/unlike")
+    @ApiOperationLog(description = "评论取消点赞")
+    public Response<?> unlikeComment(@Validated @RequestBody UnLikeCommentReqVO request) {
+        return commentService.unlikeComment(request);
+    }
+    
     @PostMapping("/like")
     @ApiOperationLog(description = "评论点赞")
     public Response<?> likeComment(@Validated @RequestBody LikeCommentReqVO request) {

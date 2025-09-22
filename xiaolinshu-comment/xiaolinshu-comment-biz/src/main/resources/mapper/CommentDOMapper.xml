@@ -352,4 +352,11 @@
         order by create_time
         limit #{limit}
     </select>
+    
+    <select id="selectCountByUserIdAndCommentId" resultType="int" parameterType="map">
+        select count(1)
+        from t_comment_like
+        where user_id = #{userId}
+          and comment_id = #{commentId}
+    </select>
 </mapper>

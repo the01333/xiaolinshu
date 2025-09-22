@@ -10,6 +10,15 @@ import java.util.List;
 public interface CommentDOMapper {
 
     /**
+     * 查询用户是否已经点赞该评论
+     *
+     * @param userId
+     * @param commentId
+     * @return
+     */
+    int selectCountByUserIdAndCommentId(Long userId, Long commentId);
+    
+    /**
      * 查询子评论
      *
      * @param parentId
@@ -131,4 +140,5 @@ public interface CommentDOMapper {
     int updateByPrimaryKeySelective(CommentDO record);
 
     int updateByPrimaryKey(CommentDO record);
+
 }
