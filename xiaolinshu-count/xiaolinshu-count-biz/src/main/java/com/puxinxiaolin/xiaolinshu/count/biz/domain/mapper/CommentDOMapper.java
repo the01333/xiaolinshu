@@ -6,6 +6,16 @@ import org.apache.ibatis.annotations.Param;
 public interface CommentDOMapper {
 
     /**
+     * 更新评论点赞数
+     *
+     * @param count
+     * @param commentId
+     * @return
+     */
+    int updateLikeTotalByCommentId(@Param("count") Integer count,
+                                   @Param("commentId") Long commentId);
+
+    /**
      * 更新一级评论的子评论总数
      *
      * @param parentId

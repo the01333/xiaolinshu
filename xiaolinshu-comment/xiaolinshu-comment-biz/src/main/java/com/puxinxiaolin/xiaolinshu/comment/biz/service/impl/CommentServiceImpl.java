@@ -22,10 +22,7 @@ import com.puxinxiaolin.xiaolinshu.comment.biz.domain.dataobject.CommentLikeDO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.CommentDOMapper;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.CommentLikeDOMapper;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.NoteCountDOMapper;
-import com.puxinxiaolin.xiaolinshu.comment.biz.enums.CommentLevelEnum;
-import com.puxinxiaolin.xiaolinshu.comment.biz.enums.CommentLikeLuaResultEnum;
-import com.puxinxiaolin.xiaolinshu.comment.biz.enums.LikeUnlikeCommentTypeEnum;
-import com.puxinxiaolin.xiaolinshu.comment.biz.enums.ResponseCodeEnum;
+import com.puxinxiaolin.xiaolinshu.comment.biz.enums.*;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.LikeUnlikeCommentMqDTO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.PublishCommentMqDTO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.vo.*;
@@ -87,6 +84,79 @@ public class CommentServiceImpl implements CommentService {
             .maximumSize(10000)
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build();
+
+    /**
+     * 取消评论点赞
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> unlikeComment(UnLikeCommentReqVO request) {
+        Long commentId = request.getCommentId();
+        
+        // 1. 校验评论是否存在
+        checkCommentIsExist(commentId);
+        
+        // 2. 校验评论是否被点赞过
+        Long userId = LoginUserContextHolder.getUserId();
+        String redisKey = RedisKeyConstants.buildBloomCommentLikesKey(userId);
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setResultType(Long.class);
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_comment_unlike_check.lua")));
+
+        Long result = redisTemplate.execute(script, Collections.singletonList(redisKey), commentId);
+        CommentUnlikeLuaResultEnum commentUnlikeLuaResultEnum = CommentUnlikeLuaResultEnum.valueOf(result);
+        if (commentUnlikeLuaResultEnum == null) {
+            return Response.fail(ResponseCodeEnum.PARAM_NOT_VALID);
+        }
+        
+        switch (commentUnlikeLuaResultEnum) {
+            // 布隆过滤器不存在, 异步初始化
+            case NOT_EXIST -> {
+                threadPoolTaskExecutor.submit(() -> {
+                    int expireSeconds = 60 * 60 + RandomUtil.randomInt(60 * 60);
+                    batchAddCommentLike2BloomAndExpire(userId, expireSeconds, redisKey);
+                });
+
+                int count = commentDOMapper.selectCountByUserIdAndCommentId(userId, commentId);
+                if (count == 0) {
+                    throw new BizException(ResponseCodeEnum.COMMENT_NOT_LIKED);
+                }
+            }
+            // 布隆过滤器校验目标评论未被点赞（判断绝对正确）
+            case COMMENT_NOT_LIKED -> throw new BizException(ResponseCodeEnum.COMMENT_NOT_LIKED);
+        }
+
+        // 3. 发送顺序 MQ, 删除评论点赞记录
+        LikeUnlikeCommentMqDTO mqDTO = LikeUnlikeCommentMqDTO.builder()
+                .commentId(commentId)
+                .userId(userId)
+                .type(LikeUnlikeCommentTypeEnum.UNLIKE.getCode())
+                .createTime(LocalDateTime.now())
+                .build();
+        
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
+                .build();
+        
+        String destination = MQConstants.TOPIC_COMMENT_LIKE_OR_UNLIKE + ":" + MQConstants.TAG_UNLIKE;
+        String hashKey = String.valueOf(userId);
+        
+        rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【评论取消点赞】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable e) {
+                log.error("==> 【评论取消点赞】MQ 发送异常: ", e);
+            }
+        });
+
+        return Response.success();
+    }
 
     /**
      * 评论点赞
