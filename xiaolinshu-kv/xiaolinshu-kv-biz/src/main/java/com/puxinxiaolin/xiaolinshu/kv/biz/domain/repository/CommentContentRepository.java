@@ -11,6 +11,17 @@ import java.util.UUID;
 public interface CommentContentRepository extends CassandraRepository<CommentContentDO, CommentContentPrimaryKey> {
 
     /**
+     * 删除评论正文
+     *
+     * @param noteId
+     * @param yearMonth
+     * @param contentId
+     */
+    void deleteByPrimaryKeyNoteIdAndPrimaryKeyYearMonthAndPrimaryKeyContentId(Long noteId,
+                                                                              String yearMonth,
+                                                                              UUID contentId);
+
+    /**
      * 批量查询评论内容
      *
      * @param noteId     分区键 1

@@ -6,14 +6,13 @@ import com.puxinxiaolin.framework.common.constant.DateConstants;
 import com.puxinxiaolin.framework.common.response.Response;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.bo.CommentBO;
 import com.puxinxiaolin.xiaolinshu.kv.api.api.KeyValueFeignApi;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.BatchAddCommentContentReqDTO;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.BatchFindCommentContentReqDTO;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.CommentContentReqDTO;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.FindCommentContentReqDTO;
+import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.*;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.rsp.FindCommentContentRspDTO;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +22,29 @@ public class KeyValueRpcService {
 
     @Resource
     private KeyValueFeignApi keyValueFeignApi;
+
+    /**
+     * 删除评论内容
+     *
+     * @param noteId
+     * @param createTime
+     * @param contentId
+     * @return
+     */
+    public boolean deleteCommentContent(Long noteId, LocalDateTime createTime, String contentId) {
+        DeleteCommentContentReqDTO dto = DeleteCommentContentReqDTO.builder()
+                .contentId(contentId)
+                .yearMonth(DateConstants.Y_M.format(createTime))
+                .noteId(noteId)
+                .build();
+
+        Response<?> response = keyValueFeignApi.deleteCommentContent(dto);
+        if (!response.isSuccess()) {
+            throw new RuntimeException("删除评论内容失败");
+        }
+
+        return true;
+    }
 
     /**
      * 批量查询评论内容

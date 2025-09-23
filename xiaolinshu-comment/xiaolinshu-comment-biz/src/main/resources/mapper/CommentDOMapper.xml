@@ -359,4 +359,25 @@
         where user_id = #{userId}
           and comment_id = #{commentId}
     </select>
+    
+    <delete id="deleteByParentId" parameterType="long">
+        delete from t_comment
+        where parent_id = #{commentId}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="map">
+        delete from t_comment
+        where id in
+        <foreach collection="commentIds" item="commentId" open="(" separator="," close=")">
+            #{commentId}
+        </foreach>
+    </delete>
+
+    <select id="selectByReplyCommentId" resultMap="BaseResultMap" parameterType="long">
+        select
+        <include refid="Base_Column_List"/>
+        from t_comment
+        where reply_comment_id = #{commentId}
+    </select>
+    
 </mapper>

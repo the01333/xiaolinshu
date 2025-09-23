@@ -3,10 +3,7 @@ package com.puxinxiaolin.xiaolinshu.kv.biz.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import com.google.common.collect.Lists;
 import com.puxinxiaolin.framework.common.response.Response;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.BatchAddCommentContentReqDTO;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.BatchFindCommentContentReqDTO;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.CommentContentReqDTO;
-import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.FindCommentContentReqDTO;
+import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.*;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.rsp.FindCommentContentRspDTO;
 import com.puxinxiaolin.xiaolinshu.kv.biz.domain.dataobject.CommentContentDO;
 import com.puxinxiaolin.xiaolinshu.kv.biz.domain.dataobject.CommentContentPrimaryKey;
@@ -88,6 +85,22 @@ public class CommentContentServiceImpl implements CommentContentService {
                 .insert(contentDOS)
                 .execute();
         
+        return Response.success();
+    }
+
+    /**
+     * 删除评论内容
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> deleteCommentContent(DeleteCommentContentReqDTO request) {
+        Long noteId = request.getNoteId();
+        String yearMonth = request.getYearMonth();
+        String contentId = request.getContentId();
+        
+        commentContentRepository.deleteByPrimaryKeyNoteIdAndPrimaryKeyYearMonthAndPrimaryKeyContentId(noteId, yearMonth, UUID.fromString(contentId));
         return Response.success();
     }
 

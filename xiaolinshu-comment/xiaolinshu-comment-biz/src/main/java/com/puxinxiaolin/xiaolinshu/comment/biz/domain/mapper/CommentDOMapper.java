@@ -10,6 +10,30 @@ import java.util.List;
 public interface CommentDOMapper {
 
     /**
+     * 根据 reply_comment_id 查询
+     *
+     * @param commentId
+     * @return
+     */
+    CommentDO selectByReplyCommentId(Long commentId);
+
+    /**
+     * 批量删除评论
+     *
+     * @param commentIds
+     * @return
+     */
+    int deleteByIds(@Param("commentIds") List<Long> commentIds);
+    
+    /**
+     * 删除一级评论下, 所有二级评论
+     *
+     * @param commentId
+     * @return
+     */
+    int deleteByParentId(Long commentId);
+
+    /**
      * 查询用户是否已经点赞该评论
      *
      * @param userId
@@ -17,7 +41,7 @@ public interface CommentDOMapper {
      * @return
      */
     int selectCountByUserIdAndCommentId(Long userId, Long commentId);
-    
+
     /**
      * 查询子评论
      *

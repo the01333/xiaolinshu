@@ -23,6 +23,7 @@ import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.CommentDOMapper;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.CommentLikeDOMapper;
 import com.puxinxiaolin.xiaolinshu.comment.biz.domain.mapper.NoteCountDOMapper;
 import com.puxinxiaolin.xiaolinshu.comment.biz.enums.*;
+import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.DeleteCommentReqVO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.LikeUnlikeCommentMqDTO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.PublishCommentMqDTO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.vo.*;
@@ -41,7 +42,9 @@ import org.apache.rocketmq.client.producer.SendCallback;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.units.qual.K;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.*;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.messaging.Message;
@@ -49,6 +52,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -78,12 +82,111 @@ public class CommentServiceImpl implements CommentService {
     private RocketMQTemplate rocketMQTemplate;
     @Resource(name = "taskExecutor")
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    @Resource
+    private TransactionTemplate transactionTemplate;
 
     private static final Cache<Long, String> LOCAL_CACHE = Caffeine.newBuilder()
             .initialCapacity(10000)
             .maximumSize(10000)
             .expireAfterWrite(1, TimeUnit.HOURS)
             .build();
+
+    /**
+     * 删除评论本地缓存
+     *
+     * @param commentId
+     */
+    @Override
+    public void deleteCommentLocalCache(Long commentId) {
+        LOCAL_CACHE.invalidate(commentId);
+    }
+
+    /**
+     * 删除评论
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public Response<?> deleteComment(DeleteCommentReqVO request) {
+        Long commentId = request.getCommentId();
+
+        // 1. 校验评论是否存在
+        CommentDO commentDO = commentDOMapper.selectByPrimaryKey(commentId);
+        if (Objects.isNull(commentDO)) {
+            throw new BizException(ResponseCodeEnum.COMMENT_NOT_FOUND);
+        }
+
+        // 2. 校验是否有权限删除
+        Long userId = LoginUserContextHolder.getUserId();
+        if (!Objects.equals(userId, commentDO.getUserId())) {
+            throw new BizException(ResponseCodeEnum.COMMENT_CANT_OPERATE);
+        }
+
+        // 3. 物理删除评论、评论内容（调用 KV 模块）
+        transactionTemplate.execute(status -> {
+            try {
+                commentDOMapper.deleteByPrimaryKey(commentId);
+                keyValueRpcService.deleteCommentContent(commentDO.getNoteId(), commentDO.getCreateTime(), commentDO.getContentUuid());
+
+                return null;
+            } catch (Exception e) {
+                status.setRollbackOnly();
+                log.error("", e);
+                // 考虑到 RPC 可能调用失败, 这里重新抛出异常, 让调用者能够感知到异常的发生
+                throw e;
+            }
+        });
+
+        // 4. 删除 redis 缓存
+        Integer level = commentDO.getLevel();
+        Long noteId = commentDO.getNoteId();
+        Long parentCommentId = commentDO.getParentId();
+        String redisZSetKey = Objects.equals(level, CommentLevelEnum.ONE.getCode()) ?
+                RedisKeyConstants.buildCommentListKey(noteId) :
+                RedisKeyConstants.buildChildCommentListKey(parentCommentId);
+
+        redisTemplate.executePipelined(new SessionCallback<>() {
+            @Override
+            public Object execute(RedisOperations operations) {
+                // 删除 ZSet 中的评论 ID
+                operations.opsForZSet().remove(redisZSetKey, commentId);
+                // 删除评论详情
+                operations.delete(RedisKeyConstants.buildCommentDetailKey(commentId));
+                return null;
+            }
+        });
+
+        // 5. 走广播 MQ, 删除本地缓存
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_DELETE_COMMENT_LOCAL_CACHE, commentId, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【删除评论详情本地缓存】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable e) {
+                log.error("==> 【删除评论详情本地缓存】MQ 发送异常: ", e);
+            }
+        });
+
+        // 6. 走 MQ, 异步更新计数、删除关联评论、热度值等
+        Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(commentDO))
+                .build();
+        rocketMQTemplate.asyncSend(MQConstants.TOPIC_DELETE_COMMENT, message, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                log.info("==> 【评论删除】MQ 发送成功, SendResult: {}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable e) {
+                log.error("==> 【评论删除】MQ 发送异常: ", e);
+            }
+        });
+
+        return Response.success();
+    }
 
     /**
      * 取消评论点赞
@@ -94,10 +197,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public Response<?> unlikeComment(UnLikeCommentReqVO request) {
         Long commentId = request.getCommentId();
-        
+
         // 1. 校验评论是否存在
         checkCommentIsExist(commentId);
-        
+
         // 2. 校验评论是否被点赞过
         Long userId = LoginUserContextHolder.getUserId();
         String redisKey = RedisKeyConstants.buildBloomCommentLikesKey(userId);
@@ -111,7 +214,7 @@ public class CommentServiceImpl implements CommentService {
         if (commentUnlikeLuaResultEnum == null) {
             return Response.fail(ResponseCodeEnum.PARAM_NOT_VALID);
         }
-        
+
         switch (commentUnlikeLuaResultEnum) {
             // 布隆过滤器不存在, 异步初始化
             case NOT_EXIST -> {
@@ -136,13 +239,13 @@ public class CommentServiceImpl implements CommentService {
                 .type(LikeUnlikeCommentTypeEnum.UNLIKE.getCode())
                 .createTime(LocalDateTime.now())
                 .build();
-        
+
         Message<String> message = MessageBuilder.withPayload(JsonUtils.toJsonString(mqDTO))
                 .build();
-        
+
         String destination = MQConstants.TOPIC_COMMENT_LIKE_OR_UNLIKE + ":" + MQConstants.TAG_UNLIKE;
         String hashKey = String.valueOf(userId);
-        
+
         rocketMQTemplate.asyncSendOrderly(destination, message, hashKey, new SendCallback() {
             @Override
             public void onSuccess(SendResult sendResult) {
@@ -203,7 +306,7 @@ public class CommentServiceImpl implements CommentService {
 
                 // 若目标评论未被点赞, 查询当前用户是否有点赞其他评论, 有则同步初始化布隆过滤器
                 batchAddCommentLike2BloomAndExpire(userId, expireSeconds, bloomKey);
-                
+
                 // 添加当前点赞评论 ID 到布隆过滤器中（先进缓存, 下一次如果出现不存在的评论再统一由上面刷到数据库）
                 script.setScriptSource(new ResourceScriptSource(new ClassPathResource("/lua/bloom_add_comment_like_and_expire.lua")));
                 script.setResultType(Long.class);

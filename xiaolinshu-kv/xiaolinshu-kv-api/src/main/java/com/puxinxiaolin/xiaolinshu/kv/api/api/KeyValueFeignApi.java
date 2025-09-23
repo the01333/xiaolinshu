@@ -6,6 +6,7 @@ import com.puxinxiaolin.xiaolinshu.kv.api.dto.req.*;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.rsp.FindCommentContentRspDTO;
 import com.puxinxiaolin.xiaolinshu.kv.api.dto.rsp.FindNoteContentRspDTO;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -21,6 +22,9 @@ public interface KeyValueFeignApi {
 
     String PREFIX = "/kv";
 
+    @PostMapping(value = "/comment/content/delete")
+    Response<?> deleteCommentContent(@RequestBody DeleteCommentContentReqDTO request);
+    
     @PostMapping(PREFIX + "/comment/content/batchFind")
     Response<List<FindCommentContentRspDTO>> batchFindCommentContent(@RequestBody BatchFindCommentContentReqDTO request);
     

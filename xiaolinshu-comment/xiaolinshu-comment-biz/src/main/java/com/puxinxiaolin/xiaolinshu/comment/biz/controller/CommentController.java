@@ -3,6 +3,7 @@ package com.puxinxiaolin.xiaolinshu.comment.biz.controller;
 import com.puxinxiaolin.framework.biz.operationlog.aspect.ApiOperationLog;
 import com.puxinxiaolin.framework.common.response.PageResponse;
 import com.puxinxiaolin.framework.common.response.Response;
+import com.puxinxiaolin.xiaolinshu.comment.biz.model.dto.DeleteCommentReqVO;
 import com.puxinxiaolin.xiaolinshu.comment.biz.model.vo.*;
 import com.puxinxiaolin.xiaolinshu.comment.biz.service.CommentService;
 import jakarta.annotation.Resource;
@@ -21,6 +22,12 @@ public class CommentController {
     @Resource
     private CommentService commentService;
 
+    @PostMapping("/delete")
+    @ApiOperationLog(description = "删除评论")
+    public Response<?> deleteComment(@Validated @RequestBody DeleteCommentReqVO request) {
+        return commentService.deleteComment(request);
+    }
+    
     @PostMapping("/unlike")
     @ApiOperationLog(description = "评论取消点赞")
     public Response<?> unlikeComment(@Validated @RequestBody UnLikeCommentReqVO request) {

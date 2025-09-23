@@ -15,4 +15,13 @@ public enum CommentLevelEnum {
     
     private final Integer code;
     
+    public static CommentLevelEnum valueOf(Integer code) {
+        for (CommentLevelEnum value : values()) {
+            if (value.code.equals(code)) {
+                return value;
+            }
+        }
+        return null;
+    }
+    
 }

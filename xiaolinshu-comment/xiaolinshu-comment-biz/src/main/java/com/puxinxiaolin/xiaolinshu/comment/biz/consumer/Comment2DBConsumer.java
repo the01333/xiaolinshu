@@ -1,10 +1,9 @@
 package com.puxinxiaolin.xiaolinshu.comment.biz.consumer;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.collection.CollectionUtil;
-import com.alibaba.nacos.shaded.com.google.common.util.concurrent.RateLimiter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.RateLimiter;
 import com.puxinxiaolin.framework.common.util.JsonUtils;
 import com.puxinxiaolin.xiaolinshu.comment.biz.constant.MQConstants;
 import com.puxinxiaolin.xiaolinshu.comment.biz.constant.RedisKeyConstants;
