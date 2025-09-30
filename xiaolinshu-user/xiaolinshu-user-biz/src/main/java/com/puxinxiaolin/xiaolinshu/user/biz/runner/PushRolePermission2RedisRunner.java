@@ -24,6 +24,11 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * @Description: 同步角色权限数据到 Redis 中，引入分布式锁，解决集群状态下导致的多次同步问题
+ * @Author: YCcLin
+ * @Date: 2025/9/30 16:06
+ */
 @Slf4j
 @Component
 public class PushRolePermission2RedisRunner implements ApplicationRunner {
@@ -35,7 +40,7 @@ public class PushRolePermission2RedisRunner implements ApplicationRunner {
     private PermissionDOMapper permissionDOMapper;
     @Resource
     private RolePermissionDOMapper rolePermissionDOMapper;
-    
+
     // 用于分布式锁的 flag
     public static final String PUSH_PERMISSION_FLAG = "push.permission.flag";
 
@@ -46,7 +51,7 @@ public class PushRolePermission2RedisRunner implements ApplicationRunner {
         try {
             Boolean canPushed = redisTemplate.opsForValue()
                     .setIfAbsent(PUSH_PERMISSION_FLAG, "1", 1, TimeUnit.DAYS);
-            if (Boolean.FALSE.equals(canPushed)) { 
+            if (Boolean.FALSE.equals(canPushed)) {
                 log.warn("==> 角色权限数据已经同步至 Redis 中，不再同步...");
                 return;
             }
@@ -68,14 +73,14 @@ public class PushRolePermission2RedisRunner implements ApplicationRunner {
                 // Map<permissionId, permissionDO>
                 Map<Long, PermissionDO> permissionIdWithDOMap = permissionDOList.stream()
                         .collect(Collectors.toMap(PermissionDO::getId, permissionDO -> permissionDO));
-                
+
                 // Map<roleId, List<permissionKey>>
                 Map<String, List<String>> roleKeyWithPermissionKeysMap = Maps.newHashMap();
-                
+
                 roleDOList.forEach(roleDO -> {
                     Long roleId = roleDO.getId();
                     String roleKey = roleDO.getRoleKey();
-                    
+
                     List<Long> permissionIds = roleIdWithPermissionIdsMap.get(roleId);
                     if (CollUtil.isNotEmpty(permissionIds)) {
                         List<String> permissionKeys = Lists.newArrayList();

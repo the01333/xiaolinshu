@@ -43,7 +43,7 @@ public class LikeUnlikeComment2DBConsumer {
     private RateLimiter rateLimiter = RateLimiter.create(5000);
 
     @Bean
-    public DefaultMQPushConsumer defaultMQPushConsumer() throws MQClientException {
+    public DefaultMQPushConsumer likeUnLikeComment2DBMQPushConsumer() throws MQClientException {
         String group = "xiaolinshu_group_" + MQConstants.TOPIC_COMMENT_LIKE_OR_UNLIKE;
 
         consumer = new DefaultMQPushConsumer(group);

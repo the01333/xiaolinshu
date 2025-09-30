@@ -1,0 +1,39 @@
+1. 中间件使用本地的 Docker Desktop 部署
+
+# mysql（第二行开始引入 canal）
+docker run -d --name mysql8.0 -p 33306:3306 -e MYSQL_ROOT_PASSWORD=root mysql:8.0.27
+docker cp mysql8.0:/etc/mysql D:\docker\mysql8\config
+docker run -d --name mysql -p 33306:3306 -e MYSQL_ROOT_PASSWORD=root -v D:\docker\mysql8\config:/etc/mysql -v D:\docker\mysql8\data:/var/lib/mysql -v D:\docker\mysql8\mysql-files:/var/lib/mysql-files mysql:8.0.27
+
+# redis（第二个新增布隆过滤器）
+docker run -p 6379:6379 --name redis -v D:\docker\redis\conf\redis.conf:/etc/redis/redis.conf  -v D:\docker\redis\data:/data -d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
+docker run -p 6379:6379 --name redis -v D:\docker\redis\conf\redis.conf:/etc/redis/redis.conf -v D:\docker\redis\data:/data -v D:\docker\redis\modules:/etc/redis/modules -d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
+
+# minio
+docker run -d -p 9000:9000 -p 9090:9090 --name minio -v D:\docker\minio\data:/data -e "MINIO_ROOT_USER=puxinxiaolin" -e "MINIO_ROOT_PASSWORD=puxinxiaolin" minio/minio:RELEASE.2023-09-30T07-02-29Z server /data --console-address ":9090"
+
+# cassandra
+docker run --name cassandra -d -p 9042:9042 -v D:\docker\cassandra\data:/var/lib/cassandra cassandra:latest
+
+# zookeeper
+docker run -d --name zookeeper -p 2181:2181 -e TZ="Asia/Shanghai" -v D:\docker\zookeeper\data:/data -v D:\docker\zookeeper\conf:/conf zookeeper:3.5.6
+
+# RocketMQ、Nacos 都手动启动
+
+# elasticsearch（前四行是为了获取 es 里的相关目录）
+docker run -d --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms1024m -Xmx1024m" elasticsearch:7.3.0
+docker cp es:/usr/share/elasticsearch/config D:\docker\elasticsearch
+docker cp es:/usr/share/elasticsearch/data D:\docker\elasticsearch
+docker cp es:/usr/share/elasticsearch/plugins D:\docker\elasticsearch
+docker run -d --name es -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e ES_JAVA_OPTS="-Xms1024m -Xmx1024m" -v D:\docker\elasticsearch\config:/usr/share/elasticsearch/config -v D:\docker\elasticsearch\data:/usr/share/elasticsearch/data -v D:\docker\elasticsearch\plugins:/usr/share/elasticsearch/plugins -v D:\docker\elasticsearch\logs:/usr/share/elasticsearch/logs elasticsearch:7.3.0
+# elasticsearch-head（选用）
+docker run -d --name es-head -p 9100:9100 mobz/elasticsearch-head:5-alpine
+# kibana（前两行为了获取 kibana 里的相关目录）
+docker run -d --name kibana -p 5601:5601 kibana:7.3.0
+docker cp kibana:/usr/share/kibana/config D:\docker\kibana
+docker run -d --name kibana -p 5601:5601 -v D:\docker\kibana\config:/usr/share/kibana/config kibana:7.3.0
+# ik 分词器（前两行进入 es 内部安装）
+docker exec -it es /bin/sh
+bin/elasticsearch-plugin install https://get.infini.cloud/elasticsearch/analysis-ik/7.3.0
+docker cp es:/usr/share/elasticsearch/plugins/analysis-ik D:\docker\elasticsearch\plugins
+docker cp es:/usr/share/elasticsearch/config/analysis-ik D:\docker\elasticsearch\config

@@ -2,6 +2,7 @@ package com.puxinxiaolin.xiaolinshu.count.biz.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 @ConfigurationProperties(prefix = "mq-consumer.follow-unfollow")
+@RefreshScope
 public class CountFans2DBMqConsumerRateLimitProperties {
 
     private double rateLimit;

@@ -3,13 +3,10 @@ server:
 spring:
   data:
     redis:
-      host: 192.168.101.17
-      #      host: localhost
+      host: 127.0.0.1
       port: 6379
-      password: puxinxiaolin
-      #      password: root
+      password: root
       database: 0
-      #      database: 2
       timeout: 5s
       lettuce:
         pool:

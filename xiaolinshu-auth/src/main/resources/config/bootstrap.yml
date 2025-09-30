@@ -6,7 +6,7 @@ spring:
   cloud:
     nacos:
       config:
-        server-addr: 192.168.101.17:8848
+        server-addr: 127.0.0.1:8848
         prefix: ${spring.application.name}
         group: DEFAULT_GROUP
         namespace: xiaolinshu
@@ -16,4 +16,4 @@ spring:
         enabled: true
         group: DEFAULT_GROUP
         namespace: xiaolinshu
-        server-addr: 192.168.101.17:8848
+        server-addr: 127.0.0.1:8848

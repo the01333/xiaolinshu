@@ -1,0 +1,9 @@
+docker exec -it zookeeper bash
+
+./bin/zkCli.sh
+
+ls /
+create /myNode "普信小林专栏"
+get /myNode
+set /myNode "普信小林"
+delete /myNode

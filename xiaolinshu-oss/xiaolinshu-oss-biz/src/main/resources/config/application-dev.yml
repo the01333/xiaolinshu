@@ -1,5 +1,11 @@
 storage:
   minio:
-    endpoint: http://192.168.101.17:9000
+    endpoint: http://127.0.0.1:9000
+    accessKey: puxinxiaolin
+    secretKey: puxinxiaolin
+oss:
+  aliyun:
+    # todo: 补充阿里 OSS 的配置
+    endpoint: http://127.0.0.1:9000
     accessKey: puxinxiaolin
     secretKey: puxinxiaolin

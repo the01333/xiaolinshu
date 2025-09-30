@@ -2,4 +2,4 @@ spring:
   cassandra:
     port: 9042
     keyspace-name: xiaolinshu
-    contact-points: 192.168.101.17
+    contact-points: 127.0.0.1

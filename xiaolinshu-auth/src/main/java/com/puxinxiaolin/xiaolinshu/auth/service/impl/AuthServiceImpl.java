@@ -83,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
                     throw new BizException(ResponseCodeEnum.VERIFICATION_CODE_ERROR);
                 }
 
+                // 拿到缓存后需要马上删除缓存
                 redisTemplate.delete(key);
 
                 // 走 rpc

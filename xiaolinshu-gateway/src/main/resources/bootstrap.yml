@@ -7,6 +7,6 @@ spring:
     nacos:
       discovery:
         enabled: true
-        server-addr: 192.168.101.17:8848
+        server-addr: 127.0.0.1:8848
         namespace: xiaolinshu
         group: DEFAULT_GROUP

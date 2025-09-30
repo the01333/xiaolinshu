@@ -69,7 +69,7 @@ public class Comment2DBConsumer {
      * @throws MQClientException
      */
     @Bean
-    public DefaultMQPushConsumer defaultMQPushConsumer() throws MQClientException {
+    public DefaultMQPushConsumer comment2DBMQPushConsumer() throws MQClientException {
         String consumerGroup = "xiaolinshu_group_" + MQConstants.TOPIC_PUBLISH_COMMENT;
 
         consumer = new DefaultMQPushConsumer(consumerGroup);

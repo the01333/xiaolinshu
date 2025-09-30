@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/xiaolinshu?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:33306/xiaolinshu?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&serverTimezone=Asia/Shanghai
     password: XDbYGgaZ9yA0EqPnxEzamMXVhWajvwtHhheZEWu/NnEA9+QnuIp+wrC4/NBdYphoc2+XrGk2FU4kd1lOEOCruQ==
     username: root
     type: com.alibaba.druid.pool.DruidDataSource
@@ -41,13 +41,10 @@ spring:
             multi-statement-allow: true
   data:
     redis:
-      host: 192.168.101.17
-      #      host: localhost
+      host: 127.0.0.1
       port: 6379
-      password: puxinxiaolin
-      #      password: root
+      password: root
       database: 0
-      #      database: 2
       timeout: 5s
       lettuce:
         pool:
@@ -61,7 +58,7 @@ logging:
     com.puxinxiaolin.xiaolinshu.user.biz.domain.mapper: debug
 
 rocketmq:
-  name-server: 192.168.101.17:9876
+  name-server: 127.0.0.1:9876
   producer:
     group: xiaolinshu_group
     send-message-timeout: 3000  # 消息发送超时时间
