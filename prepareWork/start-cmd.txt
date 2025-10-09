@@ -7,7 +7,7 @@ docker run -d --name mysql -p 33306:3306 -e MYSQL_ROOT_PASSWORD=root -v D:\docke
 
 # redis（第二个新增布隆过滤器）
 docker run -p 6379:6379 --name redis -v D:\docker\redis\conf\redis.conf:/etc/redis/redis.conf  -v D:\docker\redis\data:/data -d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
-docker run -p 6379:6379 --name redis -v D:\docker\redis\conf\redis.conf:/etc/redis/redis.conf -v D:\docker\redis\data:/data -v D:\docker\redis\modules:/etc/redis/modules -d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
+docker run -p 16379:6379 --name redis -v D:\docker\redis\conf\redis.conf:/etc/redis/redis.conf -v D:\docker\redis\data:/data -v D:\docker\redis\modules:/etc/redis/modules -d redis:7.2.3 redis-server /etc/redis/redis.conf --appendonly yes
 
 # minio
 docker run -d -p 9000:9000 -p 9090:9090 --name minio -v D:\docker\minio\data:/data -e "MINIO_ROOT_USER=puxinxiaolin" -e "MINIO_ROOT_PASSWORD=puxinxiaolin" minio/minio:RELEASE.2023-09-30T07-02-29Z server /data --console-address ":9090"

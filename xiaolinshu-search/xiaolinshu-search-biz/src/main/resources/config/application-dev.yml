@@ -40,10 +40,13 @@ spring:
           config:
             multi-statement-allow: true
 
+# es
 elasticsearch: 
   address: 127.0.0.1:9200
+  # 热更新词典
   hotUpdateExtDict: D:\docker\elasticsearch\config\analysis-ik\custom\mydict_hot_update.dic
-
+  
+# canal
 canal:
   address: 127.0.0.1:11111  # 链接地址
   destination: example  # 数据目标
