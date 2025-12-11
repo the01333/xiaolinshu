@@ -3,7 +3,6 @@ package com.puxinxiaolin.xiaolinshu.oss.biz.strategy.impl;
 import com.aliyun.oss.OSS;
 import com.puxinxiaolin.xiaolinshu.oss.biz.config.AliyunOSSProperties;
 import com.puxinxiaolin.xiaolinshu.oss.biz.strategy.FileStrategy;
-import io.minio.PutObjectArgs;
 import jakarta.annotation.Resource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

@@ -28,7 +28,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @Description: 实现 canal 构建笔记、用户实时增量 es 索引
+ * @Description: 定时实现 canal 构建笔记、用户实时增量 es 索引
  * @Author: YCcLin
  * @Date: 2025/7/26 11:22
  */
@@ -61,6 +61,7 @@ public class CanalSchedule implements Runnable {
             // 获取当前批次中的数据条数
             int size = message.getEntries().size();
 
+            // 如果没有拿到消息
             if (batchId == -1 || size == 0) {
                 try {
                     TimeUnit.SECONDS.sleep(1);

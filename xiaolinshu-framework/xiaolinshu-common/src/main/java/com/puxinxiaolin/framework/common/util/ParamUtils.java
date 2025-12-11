@@ -12,7 +12,7 @@ public class ParamUtils {
     private static final int NICK_NAME_MIN_LENGTH = 2;
     private static final int NICK_NAME_MAX_LENGTH = 24;
 
-    private static final String NICK_NAME_REGEX = "[!@#$%^&*(),.?\\\":{}|<>]";
+    private static final String NICK_NAME_REGEX = "[!@#$%^&*(),.?\":{}|<>]";
 
 
     public static boolean checkNickName(String nickName) {

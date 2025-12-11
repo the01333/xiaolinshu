@@ -1,0 +1,6 @@
+<网关服务>
+
+1. 相关内容
+    1️⃣主要引入了 SaToken, 并对其进行一些配置
+    2️⃣网关的全局异常处理实现 ErrorWebExceptionHandler, 对不同异常做返参处理
+    3️⃣自定义过滤器实现 GlobalFilter, 往所有网关的请求中放入用户 ID, 并且还要设置该过滤器的执行顺序慢于 SaToken 的 SaReactorFilter 过滤器（该过滤器为 @Order(-100), 数字越大优先级越低）

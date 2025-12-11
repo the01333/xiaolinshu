@@ -1,0 +1,15 @@
+<框架服务>
+
+一、common 模块
+    封装了自定义注解用于校验手机号是否合法、响参以及分页响参、自定义异常、一些工具类（如日期、Json、参数校验、数据美化）
+
+二、context 模块
+    使用阿里的 TransmittableThreadLocal 实现用户全局上下文, 避免在多线程场景中数据丢失的问题;
+    自定义过滤器继承 OncePerRequestFilter, 获取请求中的用户 ID 存入用户全局上下文中供其他服务直接使用;
+    自定义过滤器实现 RequestInterceptor, 对走 rpc 的请求里放入用户 ID, 实现用户 ID 透穿
+
+三、log 模块
+    自定义日志注解, 对使用的 controller 进行详细的日志输出
+
+四、jackson 模块
+    设置序列化、反序列化、日期的相关配置

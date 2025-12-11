@@ -12,6 +12,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * @Description: 把请求头中的 userId 设置到全局的 contextHolder 中
+ * @Author: YCcLin
+ * @Date: 2025/10/10 20:16
+ */
 @Slf4j
 public class HeaderUserId2ContextFilter extends OncePerRequestFilter {
 

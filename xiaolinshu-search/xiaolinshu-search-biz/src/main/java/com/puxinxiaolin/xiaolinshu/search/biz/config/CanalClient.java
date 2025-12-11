@@ -46,6 +46,11 @@ public class CanalClient implements DisposableBean {
         return canalConnector;
     }
 
+    /**
+     * 在 Spring 容器销毁时释放资源
+     *
+     * @throws Exception
+     */
     @Override
     public void destroy() throws Exception {
         canalConnector.disconnect();
